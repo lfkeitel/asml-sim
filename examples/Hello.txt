@@ -1,0 +1,20 @@
+; Load H
+21 48
+; Print H
+31 FF
+; Load E
+21 45
+; Print E
+31 FF
+; Load L
+21 4C
+; Print L
+31 FF
+; Print L
+31 FF
+; Load O
+21 4F
+; Print O
+31 FF
+; Halt
+C0 00
