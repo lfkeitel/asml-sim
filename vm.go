@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math/bits"
+	"os"
 )
 
 const (
@@ -22,8 +23,9 @@ type vm struct {
 }
 
 func newVM(code []uint8, disableState bool) *vm {
-	if len(code) > 255 { // 256 - 1 for printer cell
-		panic("Program too big")
+	if len(code) > numOfMemoryCells-1 { // Reserve printer cell
+		fmt.Println("Program too big")
+		os.Exit(0)
 	}
 
 	newvm := &vm{
@@ -44,10 +46,10 @@ func (vm *vm) run(out io.Writer) error {
 mainLoop:
 	for {
 		instruction := vm.memory[vm.pc]
-		opcode := instruction >> 4
-		operand1 := instruction & 15
-		operand2 := vm.memory[vm.pc+1] >> 4
-		operand3 := vm.memory[vm.pc+1] & 15
+		opcode := instruction >> 4          // First 4 bits of byte 1
+		operand1 := instruction & 15        // Second 4 bits of byte 1
+		operand2 := vm.memory[vm.pc+1] >> 4 // First 4 bits of byte 2
+		operand3 := vm.memory[vm.pc+1] & 15 // Second 4 bits of byte 2
 
 		if vm.printState {
 			vm.printVMState()
@@ -105,6 +107,7 @@ mainLoop:
 
 		vm.pc += 2
 
+		// Print character in memory address FF and reset it to 0
 		if vm.memory[255] > 0 {
 			vm.printer.WriteByte(byte(vm.memory[255]))
 			vm.memory[255] = 0
@@ -145,6 +148,7 @@ func (vm *vm) printVMState() {
 
 	vm.writeString("\nProgram Counter      = ")
 	vm.writeString(formatHex(vm.pc))
+
 	vm.writeString("\nInstruction Register = ")
 	vm.writeString(formatHex(vm.memory[vm.pc]))
 	vm.writeString(formatHex(vm.memory[vm.pc+1]))
@@ -186,7 +190,9 @@ func (vm *vm) addCompliment(r, s, t uint8) {
 	vm.registers[r] = uint8(int8(vm.registers[s]) + int8(vm.registers[t]))
 }
 
-func (vm *vm) addFloats(r, s, t uint8) {}
+func (vm *vm) addFloats(r, s, t uint8) {
+	// Not implemented
+}
 
 func (vm *vm) orRegisters(r, s, t uint8) {
 	vm.registers[r] = vm.registers[s] | vm.registers[t]
