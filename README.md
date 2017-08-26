@@ -6,6 +6,16 @@ This is a Go implementation of a teaching simulator originally written in Java. 
 
 This program requires Go 1.9 to compile.
 
+## Running the Simulator
+
+By default, the simulator will load a file named `MachineIn.txt` as the code and write the state and machine printer to `MachineOut.txt`. Both of these can be changed using CLI flags as described below.
+
+### Command Flags
+
+- `-in`: Path to the input code file
+- `-out`: Path to the output file. If this is the text "stdout", output will be printed to standard output instead of a file.
+- `-nostate`: Don't print the machine state before every instruction execution. Use the combo `-out stdout -nostate` to only print the machine's printer to stdout.
+
 ## Architecture
 
 This machine has 16 8-bit registers and 256 8-bit memory cells. Registers are numbered 0-F in hex so their address is 4 bits. Memory cell addresses are from 00-FF in hex and so their addresses are 8 bits.
