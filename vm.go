@@ -93,6 +93,7 @@ mainLoop:
 				vm.writeString("\nPrinter: ")
 			}
 			vm.writePrinter()
+			vm.writeString("\n")
 			break mainLoop
 		default:
 			vm.writeString("INVALID OPCODE\n")
