@@ -14,12 +14,14 @@ var (
 	infile       string
 	outfile      string
 	disableState bool
+	printMem     bool
 )
 
 func init() {
 	flag.StringVar(&infile, "in", "MachineIn.txt", "Input code")
 	flag.StringVar(&outfile, "out", "MachineOut.txt", "Output file")
 	flag.BoolVar(&disableState, "nostate", false, "Disable writting state every cycle")
+	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
 }
 
 func main() {
@@ -28,6 +30,13 @@ func main() {
 	code := loadCode()
 
 	sim := newVM(code, disableState)
+
+	if printMem {
+		sim.printVMState()
+		os.Stdout.Write(sim.output.Bytes())
+		os.Stdout.Write([]byte{'\n'})
+		return
+	}
 
 	var output io.Writer
 	if outfile == "stdout" {
