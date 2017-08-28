@@ -24,6 +24,8 @@ Storing a value in cell FF will result in the value's ASCII representation being
 
 ## Language
 
+### Instructions
+
 Each instruction is 16-bits (2-bytes) long. The first 4 bits are the opcode as described below. The next 3 4-bit sets are the operands for the instruction. Some instructions will combine operands into a single value, but conceptually they are still separate operands.
 
 ```
@@ -39,6 +41,8 @@ Each instruction is written in hexadecimal and is on a separate line with a spac
 C0 00
 ```
 
+### Comments
+
 Comments are allowed by starting a line with a semicolon, blank lines are ok as well:
 
 ```
@@ -47,6 +51,35 @@ Comments are allowed by starting a line with a semicolon, blank lines are ok as 
 
 ; Halt
 C0 00
+```
+
+### Labels
+
+Labels can be used instead of hard coding memory locations. Labels are defined on their own line starting with a colon:
+
+```
+:data
+13 45
+```
+
+Labels can be used anywhere a full byte memory location would be used. The syntax is `~labelName`:
+
+```
+; Load the value in memory location 'data' (13) to register 1
+11 ~data
+
+:data
+13 42
+```
+
+Labels can also have simple math applied:
+
+```
+; Load the value in memory location 'data+1' (42) to register 1
+11 ~data+1
+
+:data
+13 42
 ```
 
 ## Instruction Set
