@@ -15,6 +15,8 @@ By default, the simulator will load a file named `MachineIn.txt` as the code and
 - `-in`: Path to the input code file.
 - `-out`: Path to the output file. If this is the text "stdout", output will be printed to standard output instead of a file.
 - `-nostate`: Don't print the machine state before every instruction execution. Use the combo `-out stdout -nostate` to only print the machine's printer to stdout.
+- `-printmem`: Print the initial memory state after loading the code. Not instructions are executed.
+- `-legacy`: Print the source code formatted for the original Java implementation.
 
 ## Architecture
 
