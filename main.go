@@ -15,6 +15,7 @@ var (
 	outfile      string
 	disableState bool
 	printMem     bool
+	printLegacy  bool
 )
 
 func init() {
@@ -22,12 +23,20 @@ func init() {
 	flag.StringVar(&outfile, "out", "MachineOut.txt", "Output file")
 	flag.BoolVar(&disableState, "nostate", false, "Disable writting state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
+	flag.BoolVar(&printLegacy, "legacy", false, "Print source code converted for original implementation")
 }
 
 func main() {
 	flag.Parse()
 
 	code := loadCode()
+
+	if printLegacy {
+		for _, b := range code {
+			fmt.Printf("%02X\n", b)
+		}
+		return
+	}
 
 	sim := newVM(code, disableState)
 
