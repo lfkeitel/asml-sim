@@ -83,7 +83,7 @@ func loadCode() []uint8 {
 	linenum := 0
 	labels := make(map[string]uint8)            // Label definitions
 	labelPlaces := make(map[uint8]labelReplace) // Memory locations that need labels
-	cmemloc := uint8(0)
+	currMemLocation := uint8(0)
 
 	for {
 		line, _, err := reader.ReadLine()
@@ -101,14 +101,19 @@ func loadCode() []uint8 {
 		}
 
 		if line[0] == ':' { // label definition
-			labels[string(line[1:])] = cmemloc
+			labels[string(line[1:])] = currMemLocation
 			continue
 		}
 
 		instruction := bytes.SplitN(line, []byte{' '}, 2)
 		byte1, err := strconv.ParseUint(string(instruction[0]), 16, 8)
 		if err != nil {
-			fmt.Printf("Error on line %d\n", line)
+			fmt.Printf("Error on line %d, invalid byte\n", linenum)
+			os.Exit(1)
+		}
+
+		if len(instruction) != 2 {
+			fmt.Printf("Error on line %d, expected two bytes got 1\n", linenum)
 			os.Exit(1)
 		}
 
@@ -133,7 +138,7 @@ func loadCode() []uint8 {
 					offset = -offset
 				}
 			}
-			labelPlaces[cmemloc+1] = labelReplace{
+			labelPlaces[currMemLocation+1] = labelReplace{
 				l:      string(label),
 				offset: offset,
 			}
@@ -141,13 +146,13 @@ func loadCode() []uint8 {
 		} else {
 			byte2, err := strconv.ParseUint(string(instruction[1]), 16, 8)
 			if err != nil {
-				fmt.Printf("Error on line %d\n", linenum)
+				fmt.Printf("Error on line %d, invalid byte\n", linenum)
 				os.Exit(1)
 			}
 
 			code = append(code, uint8(byte1), uint8(byte2))
 		}
-		cmemloc += 2
+		currMemLocation += 2
 	}
 
 	// Replace labels
