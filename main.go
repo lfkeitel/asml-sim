@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"flag"
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 )
 
 var (
@@ -17,8 +14,6 @@ var (
 	printMem    bool
 	printLegacy bool
 	compile     bool
-
-	asmlHeader = []byte("ASML")
 )
 
 func init() {
@@ -38,7 +33,7 @@ func main() {
 	if printLegacy {
 		for i, b := range code {
 			if i&1 != 1 { // Check even indexes
-				if b>>4 > 12 { // Only opcodes 1-12 were in the original implementation
+				if b>>4 > HALT { // Only opcodes 1-12 were in the original implementation
 					fmt.Println("ERROR: Opcodes D and E are not available in the legacy implementation")
 					return
 				}
@@ -92,127 +87,4 @@ func main() {
 	if err := sim.run(output); err != nil {
 		fmt.Println(err.Error())
 	}
-}
-
-type labelReplace struct {
-	l      string
-	offset uint8
-}
-
-func loadCode() []uint8 {
-	file, err := os.Open(infile)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	// Read in a compiled ASML file
-	header := make([]byte, 4)
-	n, err := file.Read(header)
-	if err != nil {
-		fmt.Printf("Error reading file header: %s\n", err)
-		os.Exit(1)
-	}
-	if n < 4 {
-		fmt.Println("Invalid file")
-		os.Exit(1)
-	}
-
-	if bytes.Equal(header, asmlHeader) {
-		var buf bytes.Buffer
-		io.Copy(&buf, file)
-		return buf.Bytes()
-	}
-
-	// Rewind file to read in as source
-	file.Seek(0, 0)
-	reader := bufio.NewReader(file)
-	var code []uint8
-	linenum := 0
-	labels := make(map[string]uint8)            // Label definitions
-	labelPlaces := make(map[uint8]labelReplace) // Memory locations that need labels
-	currMemLocation := uint8(0)
-
-	for {
-		line, _, err := reader.ReadLine()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			panic(err)
-		}
-		linenum++
-
-		line = bytes.TrimSpace(line)
-		if len(line) == 0 || line[0] == ';' { // comment/blank line
-			continue
-		}
-
-		if line[0] == ':' { // label definition
-			labels[string(line[1:])] = currMemLocation
-			continue
-		}
-
-		instruction := bytes.SplitN(line, []byte{' '}, 2)
-		byte1, err := strconv.ParseUint(string(instruction[0]), 16, 8)
-		if err != nil {
-			fmt.Printf("Error on line %d, invalid byte\n", linenum)
-			os.Exit(1)
-		}
-
-		if len(instruction) != 2 {
-			fmt.Printf("Error on line %d, expected two bytes got 1\n", linenum)
-			os.Exit(1)
-		}
-
-		if instruction[1][0] == '~' {
-			label := instruction[1][1:]
-			var offset uint8
-			addIndex := bytes.Index(instruction[1], []byte{'+'})
-			subIndex := bytes.Index(instruction[1], []byte{'-'})
-			if addIndex > 0 || subIndex > 0 {
-				ind := addIndex
-				if subIndex > 0 {
-					ind = subIndex
-				}
-				label = instruction[1][1:ind]
-				offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 16, 8)
-				if err != nil {
-					fmt.Printf("Invalid offset on line %d\n", linenum)
-					os.Exit(1)
-				}
-				offset = uint8(offset64)
-				if subIndex > 0 {
-					offset = -offset
-				}
-			}
-			labelPlaces[currMemLocation+1] = labelReplace{
-				l:      string(label),
-				offset: offset,
-			}
-			code = append(code, uint8(byte1), 0)
-		} else {
-			byte2, err := strconv.ParseUint(string(instruction[1]), 16, 8)
-			if err != nil {
-				fmt.Printf("Error on line %d, invalid byte\n", linenum)
-				os.Exit(1)
-			}
-
-			code = append(code, uint8(byte1), uint8(byte2))
-		}
-		currMemLocation += 2
-	}
-
-	// Replace labels
-	for loc, label := range labelPlaces {
-		memloc, exists := labels[label.l]
-		if !exists {
-			fmt.Printf("Label %s not defined\n", label.l)
-			os.Exit(1)
-		}
-		code[loc] = memloc + label.offset
-	}
-
-	return code
 }

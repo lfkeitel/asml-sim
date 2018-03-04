@@ -56,46 +56,46 @@ mainLoop:
 		}
 
 		switch opcode {
-		case 0:
+		case NOOP:
 			// noop
-		case 1:
-			vm.writeStateMessage("LOAD\n")
+		case LOADA:
+			vm.writeStateMessage("LOADA\n")
 			vm.loadFromMem(operand1, operand2, operand3)
-		case 2:
-			vm.writeStateMessage("LOAD\n")
+		case LOADI:
+			vm.writeStateMessage("LOADI\n")
 			vm.loadIntoReg(operand1, operand2, operand3)
-		case 3:
+		case STRA:
 			if operand2 == 15 && operand3 == 15 {
 				vm.writeStateMessage("PRINT\n")
 			} else {
-				vm.writeStateMessage("STORE\n")
+				vm.writeStateMessage("STOREA\n")
 			}
 			vm.storeRegInMemory(operand1, operand2, operand3)
-		case 4:
+		case MOVR:
 			vm.writeStateMessage("MOVE\n")
 			vm.moveRegisters(operand2, operand3)
-		case 5:
+		case ADD:
 			vm.writeStateMessage("ADD\n")
 			vm.addCompliment(operand1, operand2, operand3)
-		case 6:
-			vm.writeStateMessage("ADD\n")
+		case ADDF:
+			vm.writeStateMessage("ADDF\n")
 			vm.addFloats(operand1, operand2, operand3)
-		case 7:
+		case OR:
 			vm.writeStateMessage("OR\n")
 			vm.orRegisters(operand1, operand2, operand3)
-		case 8:
+		case AND:
 			vm.writeStateMessage("AND\n")
 			vm.andRegisters(operand1, operand2, operand3)
-		case 9:
+		case XOR:
 			vm.writeStateMessage("XOR\n")
 			vm.xorRegisters(operand1, operand2, operand3)
-		case 10:
+		case ROT:
 			vm.writeStateMessage("ROTATE\n")
 			vm.rotateRegister(operand1, operand3)
-		case 11:
+		case JMP:
 			vm.writeStateMessage("JUMP\n")
 			vm.jumpEq(operand1, operand2, operand3)
-		case 12:
+		case HALT:
 			vm.writeStateMessage("HALT\n")
 			if vm.printState {
 				vm.writeString("\nPrinter: ")
@@ -103,11 +103,11 @@ mainLoop:
 			vm.writePrinter()
 			vm.writeString("\n")
 			break mainLoop
-		case 13:
-			vm.writeStateMessage("STOREA\n")
+		case STRR:
+			vm.writeStateMessage("STORER\n")
 			vm.storeRegInMemoryAddr(operand2, operand3)
-		case 14:
-			vm.writeStateMessage("LOADA\n")
+		case LOADR:
+			vm.writeStateMessage("LOADR\n")
 			vm.loadRegInMemoryAddr(operand2, operand3)
 		default:
 			vm.writeString("INVALID OPCODE\n")

@@ -1,24 +1,16 @@
-; Load H
-21 48
-; Print H
-31 FF
+LOADI %1 'H'
+STRA %1 FF
 
-; Load E
-21 45
-; Print E
-31 FF
+LOADI %1 'e'
+STRA %1 FF
 
-; Load L
-21 4C
-; Print L
-31 FF
-; Print L
-31 FF
+LOADI %1 'l'
+STRA %1 FF
 
-; Load O
-21 4F
-; Print O
-31 FF
+LOADI %1 'l'
+STRA %1 FF
 
-; Halt
-C0 00
+LOADI %1 'o'
+STRA %1 FF
+
+HALT

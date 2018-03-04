@@ -29,7 +29,7 @@ it has the ASML header.
 This machine emulates an 8-bit CPU with 8-bit addressing. This limits the available memory to a whopping 256 bytes.
 Effectively 255 bytes as the highest address is used for printing to the screen.
 
-This machine has 16. Registers are numbered 0-F in hex so their addresses are 4 bits.
+This machine has 16 registers. Registers are numbered 0-F in hex so their addresses are 4 bits.
 Memory cell addresses are from 00-FF in hex so their addresses are 8 bits.
 
 Storing a value in cell FF will result in the value's ASCII representation being printed to the machine printer.
@@ -50,12 +50,21 @@ into a single value, but conceptually they are still separate operands.
  opcode   op1      op2     op3
 ```
 
-Each instruction is written in hexadecimal and is on a separate line with a space between the two 8-bit sets:
+Each instruction is written using mnemonics:
 
 ```
-21 FF
-C0 00
+LOADI %1 FF
+HALT
 ```
+
+'%' denotes a register. (%0 - %F)
+
+Hex numbers use no special syntax.
+
+Single bytes can be used by enclosing them in single quotes. (`'H'`)
+
+Raw bytes can be used when the line doesn't start with a comment, label, or instruction.
+See the data section examples below.
 
 ### Comments
 
@@ -63,15 +72,15 @@ Comments are allowed by starting a line with a semicolon, blank lines are ok as 
 
 ```
 ; Load FF into register 1
-21 FF
+LOADI %1 FF
 
 ; Halt
-C0 00
+HALT
 ```
 
 ### Labels
 
-Labels can be used instead of hard coding memory locations. Labels are defined on their own
+Labels can be used in place of a full byte argument. Labels are defined on their own
 line starting with a colon:
 
 ```
@@ -79,11 +88,11 @@ line starting with a colon:
 13 45
 ```
 
-Labels can be used anywhere a full byte memory location would be used. The syntax is `~labelName`:
+Labels can be used anywhere a full byte would be used. The syntax is `~labelName`:
 
 ```
 ; Load the value in memory location 'data' (13) to register 1
-11 ~data
+LOADA %1 ~data
 
 :data
 13 42
@@ -93,7 +102,7 @@ Labels can also have simple math applied:
 
 ```
 ; Load the value in memory location 'data+1' (42) to register 1
-11 ~data+1
+LOADA %1 ~data+1
 
 :data
 13 42
@@ -128,62 +137,55 @@ hexadecimal number. '0' is a literal numeral 0.
 \* These instructions are not part of the original language. They were added to implement a
 stack using the value of a register as a memory address.
 
+## Mnemonics
+
+| Opcode | Mnemonic | Syntax       |
+|--------|----------|--------------|
+| 0      | NOOP     | NOOP         |
+| 1      | LOADA    | LOADA %R XY  |
+| 2      | LOADI    | LOADI %R XY  |
+| 3      | STRA     | STRA %R XY   |
+| 4      | MOVR     | MOVR %R %S   |
+| 5      | ADD      | ADD %R %S %T |
+| 6      |          |              |
+| 7      | OR       | OR %R %S %T  |
+| 8      | AND      | AND %R %S %T |
+| 9      | XOR      | XOR %R %S %T |
+| A      | ROT      | ROT %R X     |
+| B      | JMP      | JMP %R XY    |
+| C      | HALT     | HALT         |
+| D      | STRR     | STRR %R %S   |
+| E      | LOADR    | LOADR %R %S  |
+| F      |          |              |
+
 ## Example
 
 The following example prints the character 'X' to the printer 3 times using a loop:
 
 ```
-Address | Instruction
---------|------------------------------------------------------------------
-        | ; Register 1 - loop counter
-     00 | 21 03
-        |
-        | ; Register 2 - constant -1
-     02 | 22 FF
-        |
-        | ; Register 3 - character X
-     04 | 23 58
-        |
-        | ; Print X
-     06 | 33 FF
-        |
-        | ; Add r1 and r2 (r1 - 1), store in r1
-     08 | 51 12
-        |
-        | ; Check if loop counter is 0, if yes, jump to address 0E (halt)
-     0A | B1 0E
-        |
-        | ; Unconditional jump to address 06 (prints X)
-     0C | B0 06
-        |
-        | ; Exit
-     0E | C0 00
-```
-
-The same example using labels:
-
-```
 ; Register 1 - loop counter
-21 03
+LOADI %1 3
 
 ; Register 2 - constant -1
-22 FF
+LOADI %2 FF
 
 ; Register 3 - char X
-23 58
+LOADI %3 'X'
 
 :print_x
-33 FF
+; Print X
+STRA %3 FF
 
 ; Add r1 and r2 (r1 - 1), store in r1
-51 12
+ADD %1 %1 %2
 
 ; Check if loop counter is 0
-B1 ~halt
+JMP %1 ~end
 
 ; Unconditional jump to print X
-B0 ~print_x
+JMP %0 ~print_x
 
-:halt
-C0 00
+:end
+; Exit
+HALT
 ```

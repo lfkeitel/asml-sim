@@ -23,41 +23,41 @@
 ; memory if care is not taken.
 
 :main
-2C FF
-2D 01
-2E FE
+LOADI %C FF
+LOADI %D 01
+LOADI %E FE
 
 ; Print H
-21 48
-2F ~e
-B0 ~print
+LOADI %1 'H'
+LOADI %F ~e
+JMP %0 ~print
 
 :e
 ; Print e
-21 65
-2F ~l
-B0 ~print
+LOADI %1 'e'
+LOADI %F ~l
+JMP %0 ~print
 
 :l
 ; Print ll
-21 6C
-2F ~l2
-B0 ~print
+LOADI %1 'l'
+LOADI %F ~l2
+JMP %0 ~print
 
 :l2
-21 6C
-2F ~o
-B0 ~print
+LOADI %1 'l'
+LOADI %F ~o
+JMP %0 ~print
 
 :o
 ; Print o
-21 6F
-2F ~end
-B0 ~print
+LOADI %1 'o'
+LOADI %F ~end
+JMP %0 ~print
 
 ; Halt
 :end
-C0 00
+HALT
 
 ; Subroutines
 
@@ -65,36 +65,36 @@ C0 00
 ; Wheeler jumps for the win!
 :return
 ; Edit jump address in next instruction to the locaion in register F
-3F ~return+3
+STRA %F ~return+3
 ; this instruction will always be edited to the value in register F
-B0 ~end
+JMP %0 ~end
 
 ; Print the argument in R1
 :print
 ; Push return address to stack
-D0 FE
-5E EC
+STRR %F %E
+ADD %E %E %C
 
 ; Print arg 1
-31 FF
+STRA %1 FF
 
 ; Call another function for demo
-2F ~print_return
-B0 ~increment_F0
+LOADI %F ~print_return
+JMP %0 ~increment_F0
 
 :print_return
 ; Pop return address from stack
-5E ED
-E0 FE
+ADD %E %E %D
+LOADR %F %E
 
 ; Return
-B0 ~return
+JMP %0 ~return
 
 ; increment_F0 is used to demonstrate a function call from a called function
 ; basically to show how the stack is used to save old link addresses and restored
 ; when the called function returns. Used by :print above
 :increment_F0
-11 F0
-51 1D
-31 F0
-B0 ~return
+LOADA %1 F0
+ADD %1 %1 %D
+STRA %1 F0
+JMP %0 ~return
