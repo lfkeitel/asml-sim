@@ -22,7 +22,7 @@ type vm struct {
 	printState bool
 }
 
-func newVM(code []uint8, disableState bool) *vm {
+func newVM(code []uint8, showState bool) *vm {
 	if len(code) > numOfMemoryCells-1 { // Reserve printer cell
 		fmt.Println("Program too big")
 		os.Exit(0)
@@ -32,7 +32,7 @@ func newVM(code []uint8, disableState bool) *vm {
 		registers:  make([]uint8, numOfRegisters),
 		memory:     make([]uint8, numOfMemoryCells),
 		pc:         0,
-		printState: !disableState,
+		printState: showState,
 	}
 
 	for i, c := range code {

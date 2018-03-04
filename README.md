@@ -14,7 +14,7 @@ By default, the simulator will load a file named `MachineIn.txt` as the code and
 
 - `-in`: Path to the input code file.
 - `-out`: Path to the output file. If this is the text "stdout", output will be printed to standard output instead of a file.
-- `-nostate`: Don't print the machine state before every instruction execution. Use the combo `-out stdout -nostate` to only print the machine's printer to stdout.
+- `-state`: Print the machine state before every instruction execution.
 - `-printmem`: Print the initial memory state after loading the code. Not instructions are executed.
 - `-legacy`: Print the source code formatted for the original Java implementation.
 
@@ -114,25 +114,25 @@ Address | Instruction
 --------|------------------------------------------------------------------
         | ; Register 1 - loop counter
      00 | 21 03
-        | 
+        |
         | ; Register 2 - constant -1
      02 | 22 FF
-        | 
+        |
         | ; Register 3 - character X
      04 | 23 58
-        | 
+        |
         | ; Print X
      06 | 33 FF
-        | 
+        |
         | ; Add r1 and r2 (r1 - 1), store in r1
      08 | 51 12
-        | 
+        |
         | ; Check if loop counter is 0, if yes, jump to address 0E (halt)
      0A | B1 0E
-        | 
+        |
         | ; Unconditional jump to address 06 (prints X)
      0C | B0 06
-        | 
+        |
         | ; Exit
      0E | C0 00
 ```
