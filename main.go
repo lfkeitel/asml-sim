@@ -20,7 +20,7 @@ var (
 
 func init() {
 	flag.StringVar(&infile, "in", "MachineIn.txt", "Input code")
-	flag.StringVar(&outfile, "out", "MachineOut.txt", "Output file")
+	flag.StringVar(&outfile, "out", "stdout", "Output file")
 	flag.BoolVar(&showState, "state", false, "Disable writting state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
 	flag.BoolVar(&printLegacy, "legacy", false, "Print source code converted for original implementation")
