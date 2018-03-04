@@ -90,7 +90,7 @@ In the table below, the first column is the opcode in hexadecimal. The second co
 
 | Opcode | Operands | Description                                                                                                                                 |
 |--------|----------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| 0      |          | Not implemented                                                                                                                             |
+| 0      | 000      | NOOP                                                                                                                                        |
 | 1      | RXY      | Load the value in memory address XY into register R.                                                                                        |
 | 2      | RXY      | Load the value XY into register R.                                                                                                          |
 | 3      | RXY      | Store the value of register R into memory address XY.                                                                                       |
@@ -103,7 +103,11 @@ In the table below, the first column is the opcode in hexadecimal. The second co
 | A      | R0X      | Rotate the bits of register R to the right X places. Bits are shifted to the right and lower order bits are moved to the higher order bits. |
 | B      | RXY      | Jump to memory address XY if the value in register R equals the value in register 0.                                                        |
 | C      | 000      | Halt execution.                                                                                                                             |
-| D-F    |          | Not implemented.                                                                                                                            |
+| D*     | 0RS      | Store the value of register R into the memory address stored in register S.                                                                 |
+| E*     | 0RS      | Load the value at the memory address stored in register S to register R.                                                                    |
+| F      |          | Not implemented.                                                                                                                            |
+
+\* These instructions are not part of the original language. They were added to implement a stack using the value of a register as a memory address.
 
 ## Example
 
@@ -135,4 +139,32 @@ Address | Instruction
         |
         | ; Exit
      0E | C0 00
+```
+
+The same example using labels:
+
+```
+; Register 1 - loop counter
+21 03
+
+; Register 2 - constant -1
+22 FF
+
+; Register 3 - char X
+23 58
+
+:print_x
+33 FF
+
+; Add r1 and r2 (r1 - 1), store in r1
+51 12
+
+; Check if loop counter is 0
+B1 ~halt
+
+; Unconditional jump to print X
+B0 ~print_x
+
+:halt
+C0 00
 ```

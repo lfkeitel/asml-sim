@@ -1,0 +1,100 @@
+; Print "Hello" using a print function
+; Hello = x48 x65 x6C x6C x6F
+
+; Reserved registers:
+;   Register 0 = contant 0 - Used for unconditional jumps
+;   Regsiter C = constant -1 - Used to manipulate stack pointer
+;   Register D = constant 1 - Used to manipulate stack pointer
+;   Register E = stack pointer - Points to next available stack address
+;   Register F = link register - Address to return when called functions finishes
+
+; Functions are implemented by using what's known as a Wheeler jump. Basically, we edit the running
+; code to change an address in a jump command. The address is retrived from a known register so calling
+; functions can set the return address to what they need. Labels are used liberally for return addresses.
+; A stack is used to store link addresses when a subroutine has to call another subroutine. The original
+; subroutine will then pop the stack and restore the original link address before returning.
+;
+; As much as I wanted to do this using only the original implementation instructions, it simply wasn't possible.
+; There was no way to treat a register value as an address to store a value. So, opcodes D and E were added to
+; store and load register values into an address stored in another register. This allows using one register as
+; a stack pointer and store data to that address. Other registers are reserved to increment and decrement the
+; stack pointer. The stack begins at memory address FE (FF is the print address so can't be used) and grows down.
+; There is no mechanism to check for an "out-of-bounds" stack. It's fully possible for the stack to overrun existing
+; memory if care is not taken.
+
+:main
+2C FF
+2D 01
+2E FE
+
+; Print H
+21 48
+2F ~e
+B0 ~print
+
+:e
+; Print e
+21 65
+2F ~l
+B0 ~print
+
+:l
+; Print ll
+21 6C
+2F ~l2
+B0 ~print
+
+:l2
+21 6C
+2F ~o
+B0 ~print
+
+:o
+; Print o
+21 6F
+2F ~end
+B0 ~print
+
+; Halt
+:end
+C0 00
+
+; Subroutines
+
+; return will jump to the address in register F
+; Wheeler jumps for the win!
+:return
+; Edit jump address in next instruction to the locaion in register F
+3F ~return+3
+; this instruction will always be edited to the value in register F
+B0 ~end
+
+; Print the argument in R1
+:print
+; Push return address to stack
+D0 FE
+5E EC
+
+; Print arg 1
+31 FF
+
+; Call another function for demo
+2F ~print_return
+B0 ~increment_F0
+
+:print_return
+; Pop return address from stack
+5E ED
+E0 FE
+
+; Return
+B0 ~return
+
+; increment_F0 is used to demonstrate a function call from a called function
+; basically to show how the stack is used to save old link addresses and restored
+; when the called function returns. Used by :print above
+:increment_F0
+11 F0
+51 1D
+31 F0
+B0 ~return

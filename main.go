@@ -32,7 +32,13 @@ func main() {
 	code := loadCode()
 
 	if printLegacy {
-		for _, b := range code {
+		for i, b := range code {
+			if i&1 != 1 { // Check even indexes
+				if b>>4 > 12 { // Only opcodes 1-12 were in the original implementation
+					fmt.Println("ERROR: Opcodes D and E are not available in the legacy implementation")
+					return
+				}
+			}
 			fmt.Printf("%02X\n", b)
 		}
 		return

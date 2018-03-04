@@ -56,6 +56,8 @@ mainLoop:
 		}
 
 		switch opcode {
+		case 0:
+			// noop
 		case 1:
 			vm.writeStateMessage("LOAD\n")
 			vm.loadFromMem(operand1, operand2, operand3)
@@ -63,7 +65,11 @@ mainLoop:
 			vm.writeStateMessage("LOAD\n")
 			vm.loadIntoReg(operand1, operand2, operand3)
 		case 3:
-			vm.writeStateMessage("STORE\n")
+			if operand2 == 15 && operand3 == 15 {
+				vm.writeStateMessage("PRINT\n")
+			} else {
+				vm.writeStateMessage("STORE\n")
+			}
 			vm.storeRegInMemory(operand1, operand2, operand3)
 		case 4:
 			vm.writeStateMessage("MOVE\n")
@@ -97,8 +103,20 @@ mainLoop:
 			vm.writePrinter()
 			vm.writeString("\n")
 			break mainLoop
+		case 13:
+			vm.writeStateMessage("STOREA\n")
+			vm.storeRegInMemoryAddr(operand2, operand3)
+		case 14:
+			vm.writeStateMessage("LOADA\n")
+			vm.loadRegInMemoryAddr(operand2, operand3)
 		default:
 			vm.writeString("INVALID OPCODE\n")
+			if vm.printState {
+				vm.writeString("\nPrinter: ")
+			}
+			vm.writePrinter()
+			vm.writeString("\n")
+			break mainLoop
 		}
 
 		if vm.printState {
@@ -133,7 +151,7 @@ func (vm *vm) printVMState() {
 		vm.writeString(formatHex(val) + " ")
 	}
 
-	vm.writeString("\n\nMemory     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n")
+	vm.writeString("\n\nMemory     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n\n")
 	for i := 0; i < numOfMemoryCells; i = i + 16 {
 		vm.writeString(formatHex(uint8(i)))
 		vm.writeString("         ")
@@ -146,11 +164,12 @@ func (vm *vm) printVMState() {
 		vm.writeString("\n")
 	}
 
-	vm.writeString("\nProgram Counter      = ")
+	vm.writeString("\nProgram Counter  = ")
 	vm.writeString(formatHex(vm.pc))
 
-	vm.writeString("\nInstruction Register = ")
+	vm.writeString("\nNext Instruction = ")
 	vm.writeString(formatHex(vm.memory[vm.pc]))
+	vm.writeString(" ")
 	vm.writeString(formatHex(vm.memory[vm.pc+1]))
 	vm.writeString(" ")
 }
@@ -214,4 +233,12 @@ func (vm *vm) jumpEq(r, x, y uint8) {
 	if vm.registers[r] == vm.registers[0] {
 		vm.pc = ((x << 4) + y) - 2 // The main loop adds 2, compensate
 	}
+}
+
+func (vm *vm) storeRegInMemoryAddr(r, s uint8) {
+	vm.memory[vm.registers[s]] = vm.registers[r]
+}
+
+func (vm *vm) loadRegInMemoryAddr(r, s uint8) {
+	vm.registers[r] = vm.memory[vm.registers[s]]
 }
