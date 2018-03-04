@@ -16,6 +16,9 @@ var (
 	showState   bool
 	printMem    bool
 	printLegacy bool
+	compile     bool
+
+	asmlHeader = []byte("ASML")
 )
 
 func init() {
@@ -24,6 +27,7 @@ func init() {
 	flag.BoolVar(&showState, "state", false, "Disable writting state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
 	flag.BoolVar(&printLegacy, "legacy", false, "Print source code converted for original implementation")
+	flag.BoolVar(&compile, "compile", false, "Compile file to ASML program")
 }
 
 func main() {
@@ -41,6 +45,25 @@ func main() {
 			}
 			fmt.Printf("%02X\n", b)
 		}
+		return
+	}
+
+	if compile {
+		var out io.WriteCloser
+		if outfile == "stdout" {
+			out = os.Stdout
+		} else {
+			var err error
+			out, err = os.OpenFile(outfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		}
+
+		out.Write(asmlHeader)
+		out.Write(code)
+		out.Close()
 		return
 	}
 
@@ -84,6 +107,26 @@ func loadCode() []uint8 {
 	}
 	defer file.Close()
 
+	// Read in a compiled ASML file
+	header := make([]byte, 4)
+	n, err := file.Read(header)
+	if err != nil {
+		fmt.Printf("Error reading file header: %s\n", err)
+		os.Exit(1)
+	}
+	if n < 4 {
+		fmt.Println("Invalid file")
+		os.Exit(1)
+	}
+
+	if bytes.Equal(header, asmlHeader) {
+		var buf bytes.Buffer
+		io.Copy(&buf, file)
+		return buf.Bytes()
+	}
+
+	// Rewind file to read in as source
+	file.Seek(0, 0)
 	reader := bufio.NewReader(file)
 	var code []uint8
 	linenum := 0
