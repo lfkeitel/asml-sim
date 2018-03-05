@@ -19,7 +19,6 @@ and machine printer to standard out. Both of these can be changed using CLI flag
 - `-out`: Path to the output file. If this is the text "stdout", output will be printed to standard output instead of a file.
 - `-state`: Print the machine state before every instruction execution.
 - `-printmem`: Print the initial memory state after loading the code. Not instructions are executed.
-- `-legacy`: Print the source code formatted for the original Java implementation.
 - `-compile`: Compile a source file and output it to a binary file. The binary still needs the runtime to
 execute. It can be used with the "-in" flag. The loader will automatically load the binary if
 it has the ASML header.
@@ -113,7 +112,8 @@ LOADA %1 ~data+1
 In the table below, the first column is the opcode in hexadecimal. The second column is a syntax
 for the operands of an opcode. An 'R', 'S', or 'T' represents a register address. An 'X' or 'Y'
 represents a single hexadecimal digit. Many instructions will accept an 'XY' which is an 8-bit,
-hexadecimal number. '0' is a literal numeral 0.
+hexadecimal number. '0' is a literal numeral 0. In general, if a destination register is needed,
+it will be the first operand.
 
 | Opcode | Operands | Description                                                                                                                                 |
 |--------|----------|---------------------------------------------------------------------------------------------------------------------------------------------|
@@ -121,7 +121,7 @@ hexadecimal number. '0' is a literal numeral 0.
 | 1      | RXY      | Load the value in memory address XY into register R.                                                                                        |
 | 2      | RXY      | Load the value XY into register R.                                                                                                          |
 | 3      | RXY      | Store the value of register R into memory address XY.                                                                                       |
-| 4      | 0RS      | Move the value of register R into register S.                                                                                               |
+| 4      | 0RS      | Move the value of register S into register R.                                                                                               |
 | 5      | RST      | Add the values in registers S and T using 2's compliment. The result will be stored in register R.                                          |
 | 6      | RST      | Not implemented.                                                                                                                            |
 | 7      | RST      | OR the values of registers S and T and store the value in register R.                                                                       |
@@ -130,7 +130,7 @@ hexadecimal number. '0' is a literal numeral 0.
 | A      | R0X      | Rotate the bits of register R to the right X places. Bits are shifted to the right and lower order bits are moved to the higher order bits. |
 | B      | RXY      | Jump to memory address XY if the value in register R equals the value in register 0.                                                        |
 | C      | 000      | Halt execution.                                                                                                                             |
-| D*     | 0RS      | Store the value of register R into the memory address stored in register S.                                                                 |
+| D*     | 0RS      | Store the value of register S into the memory address stored in register R.                                                                 |
 | E*     | 0RS      | Load the value at the memory address stored in register S to register R.                                                                    |
 | F      |          | Not implemented.                                                                                                                            |
 

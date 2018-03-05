@@ -208,7 +208,7 @@ func (vm *VM) storeRegInMemory(r, x, y uint8) {
 }
 
 func (vm *VM) moveRegisters(r, s uint8) {
-	vm.registers[s] = vm.registers[r]
+	vm.registers[r] = vm.registers[s]
 }
 
 func (vm *VM) addCompliment(r, s, t uint8) {
@@ -242,7 +242,7 @@ func (vm *VM) jumpEq(r, x, y uint8) {
 }
 
 func (vm *VM) storeRegInMemoryAddr(r, s uint8) {
-	vm.memory[vm.registers[s]] = vm.registers[r]
+	vm.memory[vm.registers[r]] = vm.registers[s]
 }
 
 func (vm *VM) loadRegInMemoryAddr(r, s uint8) {

@@ -72,7 +72,7 @@
 ; Print the argument in R1
 :print
     ; Push return address to stack
-    STRR %F %E
+    STRR %E %F
     ADD %E %E %C
 
     ; Print arg 1

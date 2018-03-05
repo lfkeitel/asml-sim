@@ -24,7 +24,6 @@ func init() {
 	flag.StringVar(&outfile, "out", "stdout", "Output file")
 	flag.BoolVar(&showState, "state", false, "Disable writting state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
-	flag.BoolVar(&printLegacy, "legacy", false, "Print source code converted for original implementation")
 	flag.BoolVar(&compile, "compile", false, "Compile file to ASML program")
 }
 
@@ -32,19 +31,6 @@ func main() {
 	flag.Parse()
 
 	code := loadCode()
-
-	if printLegacy {
-		for i, b := range code {
-			if i&1 != 1 { // Check even indexes
-				if b>>4 > lexer.HALT { // Only opcodes 1-12 were in the original implementation
-					fmt.Println("ERROR: Opcodes D and E are not available in the legacy implementation")
-					return
-				}
-			}
-			fmt.Printf("%02X\n", b)
-		}
-		return
-	}
 
 	if compile {
 		var out io.WriteCloser
