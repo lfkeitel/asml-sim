@@ -1,4 +1,4 @@
-package main
+package lexer
 
 // Language opcodes
 const (

@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/lfkeitel/asml-sim/pkg/lexer"
+	"github.com/lfkeitel/asml-sim/pkg/vm"
 )
 
 var (
@@ -33,7 +36,7 @@ func main() {
 	if printLegacy {
 		for i, b := range code {
 			if i&1 != 1 { // Check even indexes
-				if b>>4 > HALT { // Only opcodes 1-12 were in the original implementation
+				if b>>4 > lexer.HALT { // Only opcodes 1-12 were in the original implementation
 					fmt.Println("ERROR: Opcodes D and E are not available in the legacy implementation")
 					return
 				}
@@ -56,17 +59,17 @@ func main() {
 			}
 		}
 
-		out.Write(asmlHeader)
+		out.Write(lexer.ASMLHeader)
 		out.Write(code)
 		out.Close()
 		return
 	}
 
-	sim := newVM(code, showState)
+	sim := vm.New(code, showState)
 
 	if printMem {
-		sim.printVMState()
-		os.Stdout.Write(sim.output.Bytes())
+		sim.PrintState()
+		os.Stdout.Write(sim.Output())
 		os.Stdout.Write([]byte{'\n'})
 		return
 	}
@@ -84,7 +87,19 @@ func main() {
 		defer file.Close()
 	}
 
-	if err := sim.run(output); err != nil {
+	if err := sim.Run(output); err != nil {
 		fmt.Println(err.Error())
 	}
+}
+
+func loadCode() []uint8 {
+	file, err := os.Open(infile)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	lex := lexer.New(file)
+	return lex.Lex()
 }

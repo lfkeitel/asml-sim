@@ -1,4 +1,4 @@
-package main
+package lexer
 
 import (
 	"bufio"
@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	asmlHeader = []byte("ASML")
+	ASMLHeader = []byte("ASML")
 )
 
 type labelReplace struct {
@@ -18,7 +18,7 @@ type labelReplace struct {
 	offset uint8
 }
 
-type lexer struct {
+type Lexer struct {
 	in              io.ReadSeeker
 	labels          map[string]uint8       // Label definitions
 	labelPlaces     map[uint8]labelReplace // Memory locations that need labels
@@ -26,21 +26,13 @@ type lexer struct {
 	linenum         int
 }
 
-func loadCode() []uint8 {
-	file, err := os.Open(infile)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+func New(in io.ReadSeeker) *Lexer {
+	return &Lexer{
+		in: in,
 	}
-	defer file.Close()
-
-	lex := &lexer{
-		in: file,
-	}
-	return lex.lex()
 }
 
-func (l *lexer) lex() []uint8 {
+func (l *Lexer) Lex() []uint8 {
 	// Read in a compiled ASML file
 	header := make([]byte, 4)
 	n, err := l.in.Read(header)
@@ -53,7 +45,7 @@ func (l *lexer) lex() []uint8 {
 		os.Exit(1)
 	}
 
-	if bytes.Equal(header, asmlHeader) {
+	if bytes.Equal(header, ASMLHeader) {
 		var buf bytes.Buffer
 		io.Copy(&buf, l.in)
 		return buf.Bytes()
@@ -102,9 +94,13 @@ func (l *lexer) lex() []uint8 {
 		opcode, valid := opcodes[string(instruction[0])]
 		if !valid { // Literal bytes
 			for _, rawbyte := range instruction {
+				if rawbyte[0] == '0' && len(rawbyte) > 1 && (rawbyte[1] == 'x' || rawbyte[1] == 'X') {
+					rawbyte = rawbyte[2:]
+				}
+
 				raw, err := strconv.ParseUint(string(rawbyte), 16, 8)
-				if err != err {
-					fmt.Printf("Invalid byte sequence on line %d\n", l.linenum)
+				if err != nil {
+					fmt.Printf("Invalid byte sequence on line %d: %v\n", l.linenum, err)
 					os.Exit(1)
 				}
 
@@ -146,7 +142,7 @@ func (l *lexer) lex() []uint8 {
 	return code
 }
 
-func (l *lexer) oneRegOneDigit(instruction [][]byte) (uint8, uint8) {
+func (l *Lexer) oneRegOneDigit(instruction [][]byte) (uint8, uint8) {
 	if len(instruction) < 2 {
 		return 0, 0
 	}
@@ -173,7 +169,7 @@ func (l *lexer) oneRegOneDigit(instruction [][]byte) (uint8, uint8) {
 	return uint8(reg), uint8(digit)
 }
 
-func (l *lexer) twoRegisters(instruction [][]byte) (uint8, uint8) {
+func (l *Lexer) twoRegisters(instruction [][]byte) (uint8, uint8) {
 	if len(instruction) < 2 {
 		return 0, 0
 	}
@@ -200,7 +196,7 @@ func (l *lexer) twoRegisters(instruction [][]byte) (uint8, uint8) {
 	return uint8(reg1), uint8(reg2)
 }
 
-func (l *lexer) threeRegisters(instruction [][]byte) (uint8, uint8, uint8) {
+func (l *Lexer) threeRegisters(instruction [][]byte) (uint8, uint8, uint8) {
 	if len(instruction) < 3 {
 		return 0, 0, 0
 	}
@@ -235,7 +231,7 @@ func (l *lexer) threeRegisters(instruction [][]byte) (uint8, uint8, uint8) {
 	return uint8(reg1), uint8(reg2), uint8(reg3)
 }
 
-func (l *lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
+func (l *Lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
 	if len(instruction) < 2 {
 		return 0, 0
 	}
@@ -281,6 +277,9 @@ func (l *lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
 	} else if instruction[1][0] == '\'' { // Literal byte character
 		digit = uint64(instruction[1][1])
 	} else { // Byte hex
+		if instruction[1][0] == '0' && len(instruction[1]) > 1 && (instruction[1][1] == 'x' || instruction[1][1] == 'X') {
+			instruction[1] = instruction[1][2:]
+		}
 		digit, err = strconv.ParseUint(string(instruction[1]), 16, 8)
 		if err != nil {
 			return 0, 0
@@ -290,7 +289,7 @@ func (l *lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
 }
 
 // Old lexer for original syntax, kept for maybe a compatibility mode
-func (l *lexer) lexold() []uint8 {
+func (l *Lexer) Lexold() []uint8 {
 	// Read in a compiled ASML file
 	header := make([]byte, 4)
 	n, err := l.in.Read(header)
@@ -303,7 +302,7 @@ func (l *lexer) lexold() []uint8 {
 		os.Exit(1)
 	}
 
-	if bytes.Equal(header, asmlHeader) {
+	if bytes.Equal(header, ASMLHeader) {
 		var buf bytes.Buffer
 		io.Copy(&buf, l.in)
 		return buf.Bytes()

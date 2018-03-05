@@ -2,14 +2,14 @@
 ; Hello = x48 x65 x6C x6C x6F
 
 ; Reserved registers:
-;   Register 0 = contant 0 - Used for unconditional jumps
-;   Regsiter C = constant -1 - Used to manipulate stack pointer
+;   Register 0 = constant 0 - Used for unconditional jumps
+;   Register C = constant -1 - Used to manipulate stack pointer
 ;   Register D = constant 1 - Used to manipulate stack pointer
 ;   Register E = stack pointer - Points to next available stack address
 ;   Register F = link register - Address to return when called functions finishes
 
 ; Functions are implemented by using what's known as a Wheeler jump. Basically, we edit the running
-; code to change an address in a jump command. The address is retrived from a known register so calling
+; code to change an address in a jump command. The address is retrieved from a known register so calling
 ; functions can set the return address to what they need. Labels are used liberally for return addresses.
 ; A stack is used to store link addresses when a subroutine has to call another subroutine. The original
 ; subroutine will then pop the stack and restore the original link address before returning.
@@ -23,78 +23,78 @@
 ; memory if care is not taken.
 
 :main
-LOADI %C FF
-LOADI %D 01
-LOADI %E FE
+    LOADI %C 0xFF
+    LOADI %D 01
+    LOADI %E FE
 
-; Print H
-LOADI %1 'H'
-LOADI %F ~e
-JMP %0 ~print
+    ; Print H
+    LOADI %1 'H'
+    LOADI %F ~e
+    JMP %0 ~print
 
 :e
-; Print e
-LOADI %1 'e'
-LOADI %F ~l
-JMP %0 ~print
+    ; Print e
+    LOADI %1 'e'
+    LOADI %F ~l
+    JMP %0 ~print
 
 :l
-; Print ll
-LOADI %1 'l'
-LOADI %F ~l2
-JMP %0 ~print
+    ; Print ll
+    LOADI %1 'l'
+    LOADI %F ~l2
+    JMP %0 ~print
 
 :l2
-LOADI %1 'l'
-LOADI %F ~o
-JMP %0 ~print
+    LOADI %1 'l'
+    LOADI %F ~o
+    JMP %0 ~print
 
 :o
-; Print o
-LOADI %1 'o'
-LOADI %F ~end
-JMP %0 ~print
+    ; Print o
+    LOADI %1 'o'
+    LOADI %F ~end
+    JMP %0 ~print
 
 ; Halt
 :end
-HALT
+    HALT
 
 ; Subroutines
 
 ; return will jump to the address in register F
 ; Wheeler jumps for the win!
 :return
-; Edit jump address in next instruction to the locaion in register F
-STRA %F ~return+3
-; this instruction will always be edited to the value in register F
-JMP %0 ~end
+    ; Edit jump address in next instruction to the locaion in register F
+    STRA %F ~return+3
+    ; this instruction will always be edited to the value in register F
+    JMP %0 ~end
 
 ; Print the argument in R1
 :print
-; Push return address to stack
-STRR %F %E
-ADD %E %E %C
+    ; Push return address to stack
+    STRR %F %E
+    ADD %E %E %C
 
-; Print arg 1
-STRA %1 FF
+    ; Print arg 1
+    STRA %1 FF
 
-; Call another function for demo
-LOADI %F ~print_return
-JMP %0 ~increment_F0
+    ; Call another function for demo
+    LOADI %F ~print_return
+    JMP %0 ~increment_F0
 
 :print_return
-; Pop return address from stack
-ADD %E %E %D
-LOADR %F %E
+    ; Pop return address from stack
+    ADD %E %E %D
+    LOADR %F %E
 
-; Return
-JMP %0 ~return
+    ; Return
+    JMP %0 ~return
 
 ; increment_F0 is used to demonstrate a function call from a called function
 ; basically to show how the stack is used to save old link addresses and restored
 ; when the called function returns. Used by :print above
 :increment_F0
-LOADA %1 F0
-ADD %1 %1 %D
-STRA %1 F0
-JMP %0 ~return
+    LOADA %1 F0
+    ADD %1 %1 %D
+    STRA %1 F0
+    JMP %0 ~return

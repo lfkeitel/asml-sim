@@ -1,4 +1,4 @@
-package main
+package vm
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"io"
 	"math/bits"
 	"os"
+
+	"github.com/lfkeitel/asml-sim/pkg/lexer"
 )
 
 const (
@@ -13,7 +15,7 @@ const (
 	numOfRegisters   = 16
 )
 
-type vm struct {
+type VM struct {
 	registers  []uint8
 	memory     []uint8
 	pc         uint8
@@ -22,17 +24,17 @@ type vm struct {
 	printState bool
 }
 
-func newVM(code []uint8, showState bool) *vm {
+func New(code []uint8, printState bool) *VM {
 	if len(code) > numOfMemoryCells-1 { // Reserve printer cell
 		fmt.Println("Program too big")
 		os.Exit(0)
 	}
 
-	newvm := &vm{
+	newvm := &VM{
 		registers:  make([]uint8, numOfRegisters),
 		memory:     make([]uint8, numOfMemoryCells),
 		pc:         0,
-		printState: showState,
+		printState: printState,
 	}
 
 	for i, c := range code {
@@ -42,7 +44,11 @@ func newVM(code []uint8, showState bool) *vm {
 	return newvm
 }
 
-func (vm *vm) run(out io.Writer) error {
+func (vm *VM) Output() []byte {
+	return vm.output.Bytes()
+}
+
+func (vm *VM) Run(out io.Writer) error {
 mainLoop:
 	for {
 		instruction := vm.memory[vm.pc]
@@ -52,50 +58,50 @@ mainLoop:
 		operand3 := vm.memory[vm.pc+1] & 15 // Second 4 bits of byte 2
 
 		if vm.printState {
-			vm.printVMState()
+			vm.PrintState()
 		}
 
 		switch opcode {
-		case NOOP:
+		case lexer.NOOP:
 			// noop
-		case LOADA:
+		case lexer.LOADA:
 			vm.writeStateMessage("LOADA\n")
 			vm.loadFromMem(operand1, operand2, operand3)
-		case LOADI:
+		case lexer.LOADI:
 			vm.writeStateMessage("LOADI\n")
 			vm.loadIntoReg(operand1, operand2, operand3)
-		case STRA:
+		case lexer.STRA:
 			if operand2 == 15 && operand3 == 15 {
 				vm.writeStateMessage("PRINT\n")
 			} else {
 				vm.writeStateMessage("STOREA\n")
 			}
 			vm.storeRegInMemory(operand1, operand2, operand3)
-		case MOVR:
+		case lexer.MOVR:
 			vm.writeStateMessage("MOVE\n")
 			vm.moveRegisters(operand2, operand3)
-		case ADD:
+		case lexer.ADD:
 			vm.writeStateMessage("ADD\n")
 			vm.addCompliment(operand1, operand2, operand3)
-		case ADDF:
+		case lexer.ADDF:
 			vm.writeStateMessage("ADDF\n")
 			vm.addFloats(operand1, operand2, operand3)
-		case OR:
+		case lexer.OR:
 			vm.writeStateMessage("OR\n")
 			vm.orRegisters(operand1, operand2, operand3)
-		case AND:
+		case lexer.AND:
 			vm.writeStateMessage("AND\n")
 			vm.andRegisters(operand1, operand2, operand3)
-		case XOR:
+		case lexer.XOR:
 			vm.writeStateMessage("XOR\n")
 			vm.xorRegisters(operand1, operand2, operand3)
-		case ROT:
+		case lexer.ROT:
 			vm.writeStateMessage("ROTATE\n")
 			vm.rotateRegister(operand1, operand3)
-		case JMP:
+		case lexer.JMP:
 			vm.writeStateMessage("JUMP\n")
 			vm.jumpEq(operand1, operand2, operand3)
-		case HALT:
+		case lexer.HALT:
 			vm.writeStateMessage("HALT\n")
 			if vm.printState {
 				vm.writeString("\nPrinter: ")
@@ -103,10 +109,10 @@ mainLoop:
 			vm.writePrinter()
 			vm.writeString("\n")
 			break mainLoop
-		case STRR:
+		case lexer.STRR:
 			vm.writeStateMessage("STORER\n")
 			vm.storeRegInMemoryAddr(operand2, operand3)
-		case LOADR:
+		case lexer.LOADR:
 			vm.writeStateMessage("LOADR\n")
 			vm.loadRegInMemoryAddr(operand2, operand3)
 		default:
@@ -137,14 +143,14 @@ mainLoop:
 	return nil
 }
 
-func (vm *vm) writeStateMessage(s string) {
+func (vm *VM) writeStateMessage(s string) {
 	if vm.printState {
 		vm.writeString(s)
 	}
 }
 
-// printVMState prints all values in the registers and memory cells
-func (vm *vm) printVMState() {
+// PrintState prints all values in the registers and memory cells
+func (vm *VM) PrintState() {
 	vm.writeString("Registers  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n")
 	vm.writeString("           ")
 	for _, val := range vm.registers {
@@ -174,11 +180,11 @@ func (vm *vm) printVMState() {
 	vm.writeString(" ")
 }
 
-func (vm *vm) writeString(s string) {
+func (vm *VM) writeString(s string) {
 	vm.output.WriteString(s)
 }
 
-func (vm *vm) writePrinter() {
+func (vm *VM) writePrinter() {
 	vm.output.Write(vm.printer.Bytes())
 }
 
@@ -189,56 +195,56 @@ func formatHex(num uint8) string {
 
 // Opcode definitions
 
-func (vm *vm) loadFromMem(r, x, y uint8) {
+func (vm *VM) loadFromMem(r, x, y uint8) {
 	vm.registers[r] = vm.memory[(x<<4)+y]
 }
 
-func (vm *vm) loadIntoReg(r, x, y uint8) {
+func (vm *VM) loadIntoReg(r, x, y uint8) {
 	vm.registers[r] = (x << 4) + y
 }
 
-func (vm *vm) storeRegInMemory(r, x, y uint8) {
+func (vm *VM) storeRegInMemory(r, x, y uint8) {
 	vm.memory[(x<<4)+y] = vm.registers[r]
 }
 
-func (vm *vm) moveRegisters(r, s uint8) {
+func (vm *VM) moveRegisters(r, s uint8) {
 	vm.registers[s] = vm.registers[r]
 }
 
-func (vm *vm) addCompliment(r, s, t uint8) {
+func (vm *VM) addCompliment(r, s, t uint8) {
 	vm.registers[r] = uint8(int8(vm.registers[s]) + int8(vm.registers[t]))
 }
 
-func (vm *vm) addFloats(r, s, t uint8) {
+func (vm *VM) addFloats(r, s, t uint8) {
 	// Not implemented
 }
 
-func (vm *vm) orRegisters(r, s, t uint8) {
+func (vm *VM) orRegisters(r, s, t uint8) {
 	vm.registers[r] = vm.registers[s] | vm.registers[t]
 }
 
-func (vm *vm) andRegisters(r, s, t uint8) {
+func (vm *VM) andRegisters(r, s, t uint8) {
 	vm.registers[r] = vm.registers[s] & vm.registers[t]
 }
 
-func (vm *vm) xorRegisters(r, s, t uint8) {
+func (vm *VM) xorRegisters(r, s, t uint8) {
 	vm.registers[r] = vm.registers[s] ^ vm.registers[t]
 }
 
-func (vm *vm) rotateRegister(r, x uint8) {
+func (vm *VM) rotateRegister(r, x uint8) {
 	vm.registers[r] = bits.RotateLeft8(vm.registers[r], int(-x))
 }
 
-func (vm *vm) jumpEq(r, x, y uint8) {
+func (vm *VM) jumpEq(r, x, y uint8) {
 	if vm.registers[r] == vm.registers[0] {
 		vm.pc = ((x << 4) + y) - 2 // The main loop adds 2, compensate
 	}
 }
 
-func (vm *vm) storeRegInMemoryAddr(r, s uint8) {
+func (vm *VM) storeRegInMemoryAddr(r, s uint8) {
 	vm.memory[vm.registers[s]] = vm.registers[r]
 }
 
-func (vm *vm) loadRegInMemoryAddr(r, s uint8) {
+func (vm *VM) loadRegInMemoryAddr(r, s uint8) {
 	vm.registers[r] = vm.memory[vm.registers[s]]
 }

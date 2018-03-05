@@ -59,7 +59,7 @@ HALT
 
 '%' denotes a register. (%0 - %F)
 
-Hex numbers use no special syntax.
+Hex numbers use no special syntax. For readability, the syntax `0x##` is also valid.
 
 Single bytes can be used by enclosing them in single quotes. (`'H'`)
 
@@ -72,7 +72,7 @@ Comments are allowed by starting a line with a semicolon, blank lines are ok as 
 
 ```
 ; Load FF into register 1
-LOADI %1 FF
+LOADI %1 0xFF
 
 ; Halt
 HALT
