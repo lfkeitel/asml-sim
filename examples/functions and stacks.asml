@@ -23,9 +23,10 @@
 ; memory if care is not taken.
 
 :main
-    LOADI %C 0xFF
+    LOADI %C 0xFFFF
     LOADI %D 01
-    LOADI %E FE
+    ; Stack starts at largest memory address minus 2
+    LOADI %E 0xFFFC
 
     ; Print H
     LOADI %1 'H'
@@ -65,7 +66,8 @@
 ; Wheeler jumps for the win!
 :return
     ; Edit jump address in next instruction to the locaion in register F
-    STRA %F ~return+3
+    STRA %F ~return_jump+2
+:return_jump
     ; this instruction will always be edited to the value in register F
     JMP %0 ~end
 
@@ -73,10 +75,12 @@
 :print
     ; Push return address to stack
     STRR %E %F
+    ; Increment stack pointer by two
+    ADD %E %E %C
     ADD %E %E %C
 
     ; Print arg 1
-    STRA %1 FF
+    STRA %1 0xFFFE
 
     ; Call another function for demo
     LOADI %F ~print_return
@@ -84,6 +88,8 @@
 
 :print_return
     ; Pop return address from stack
+    ; Decrement stack pointer by two
+    ADD %E %E %D
     ADD %E %E %D
     LOADR %F %E
 

@@ -1,0 +1,31 @@
+Instruction byte layout
+
+        | opcode | arg1 | arg2 | arg3 | arg4 | arg5 | arg6 |
+--------+--------+------+------+------+------+------+------+
+NOOP    |   0    |      |      |      |      |      |      |
+LOADA   |   1    |  %D  |  H   |  L   |      |      |      |
+LOADI   |   2    |  %D  |  H   |  L   |      |      |      |
+STRA    |   3    |  %S  |  H   |  L   |      |      |      |
+MOVR    |   4    |  %D  |  %S  |      |      |      |      |
+ADD     |   5    |  %D  |  %S1 |  %S2 |      |      |      |
+FLAGS   |   6-   |      |      |      |      |      |      |
+OR      |   7    |  %D  |  %S1 |  %S2 |      |      |      |
+AND     |   8    |  %D  |  %S1 |  %S2 |      |      |      |
+XOR     |   9    |  %D  |  %S1 |  %S2 |      |      |      |
+ROT     |   A    |  %D  |  /B  |      |      |      |      |
+JMP     |   B    |  %S  |  H   |  L   |      |      |      |
+HALT    |   C    |      |      |      |      |      |      |
+STRR    |   D    |  %S  |  %D  |      |      |      |      |
+LOADR   |   E    |  %D  |  %s  |      |      |      |      |
+
+Each opcode is one byte. Each arg is one byte.
+
+%D destination register
+%S1 source register 1
+%S2 source register 2
+H higher byte of 2-byte value
+L lower byte of 2-byte value
+B one byte value
+B/ half byte high
+/B half byte low
+B/B two half byte values

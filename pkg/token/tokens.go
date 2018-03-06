@@ -17,6 +17,7 @@ const (
 	HALT  byte = 12
 	STRR  byte = 13
 	LOADR byte = 14
+	BREAK byte = 15
 )
 
 var Opcodes = map[string]byte{
@@ -35,4 +36,5 @@ var Opcodes = map[string]byte{
 	"HALT":  HALT,
 	"STRR":  STRR,
 	"LOADR": LOADR,
+	"BREAK": BREAK,
 }

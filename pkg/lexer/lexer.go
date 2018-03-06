@@ -70,9 +70,7 @@ func (l *Lexer) Lex() []uint8 {
 	l.labels = make(map[string]uint16)            // Label definitions
 	l.labelPlaces = make(map[uint16]labelReplace) // Memory locations that need labels
 	l.currMemLocation = 0
-	directives := &token.Flags{
-		Size: token.EightBit,
-	}
+	directives := &token.Flags{}
 
 	for {
 		line, _, err := reader.ReadLine()
@@ -109,26 +107,6 @@ func (l *Lexer) Lex() []uint8 {
 				fmt.Println("Directives must be before any code")
 				os.Exit(1)
 			}
-
-			line = line[1:]
-			directive := bytes.Split(line, []byte{' '})
-			if len(directive) != 2 {
-				fmt.Printf("Invalid directive on line %d\n", l.linenum)
-				os.Exit(1)
-			}
-
-			switch string(directive[0]) {
-			case "bits":
-				if string(directive[1]) == "16" {
-					directives.Size = token.SixteenBit
-				} else if string(directive[1]) == "8" {
-					directives.Size = token.EightBit
-				} else {
-					fmt.Printf("Invalid bitsize on line %d\n", l.linenum)
-					os.Exit(1)
-				}
-			}
-
 			continue
 		}
 
@@ -136,11 +114,7 @@ func (l *Lexer) Lex() []uint8 {
 		opcode, valid := token.Opcodes[string(instruction[0])]
 		if !valid { // Literal bytes
 			for _, rawbyte := range instruction {
-				if rawbyte[0] == '0' && len(rawbyte) > 1 && (rawbyte[1] == 'x' || rawbyte[1] == 'X') {
-					rawbyte = rawbyte[2:]
-				}
-
-				raw, err := strconv.ParseUint(string(rawbyte), 16, 8)
+				raw, err := strconv.ParseUint(string(rawbyte), 0, 8)
 				if err != nil {
 					fmt.Printf("Invalid byte sequence on line %d: %v\n", l.linenum, err)
 					os.Exit(1)
@@ -152,39 +126,29 @@ func (l *Lexer) Lex() []uint8 {
 		}
 
 		switch opcode {
-		case token.HALT, token.NOOP:
-			code = append(code, opcode<<4, 0)
+		case token.HALT, token.NOOP, token.BREAK:
+			code = append(code, opcode)
+			l.currMemLocation++
 		case token.ROT:
 			reg, size := l.oneRegOneDigit(instruction[1:])
-			code = append(code, opcode<<4+reg, size)
+			code = append(code, opcode, reg, size)
+			l.currMemLocation += 3
 		case token.MOVR, token.STRR, token.LOADR:
 			reg1, reg2 := l.twoRegisters(instruction[1:])
-			code = append(code, opcode<<4, reg1<<4+reg2)
+			code = append(code, opcode, reg1, reg2)
+			l.currMemLocation += 3
 		case token.ADD, token.FLAGS, token.OR, token.AND, token.XOR:
 			reg1, reg2, reg3 := l.threeRegisters(instruction[1:])
-			code = append(code, opcode<<4+reg1, reg2<<4+reg3)
-		case token.LOADI:
-			reg, b := l.oneRegOneByte(instruction[1:])
-			code = append(code, opcode<<4+reg, b)
-		case token.LOADA, token.STRA, token.JMP:
+			code = append(code, opcode, reg1, reg2, reg3)
+			l.currMemLocation += 4
+		case token.LOADI, token.LOADA, token.STRA, token.JMP:
 			reg, b := l.oneRegTwoByte(instruction[1:])
-			if directives.Size == token.EightBit && b > 255 {
-				fmt.Printf("Address too big for eight bits on line %d\n", l.linenum)
-				os.Exit(1)
-			}
-
-			if directives.Size == token.EightBit {
-				code = append(code, opcode<<4+reg, uint8(b))
-			} else {
-				code = append(code, opcode<<4+reg, uint8(b>>8), uint8(b))
-				l.currMemLocation++
-			}
+			code = append(code, opcode, reg, uint8(b>>8), uint8(b))
+			l.currMemLocation += 4
 		default:
 			fmt.Printf("Invalid opcode on line %d\n", l.linenum)
 			os.Exit(1)
 		}
-
-		l.currMemLocation += 2
 	}
 
 	// Replace labels
@@ -195,20 +159,16 @@ func (l *Lexer) Lex() []uint8 {
 			os.Exit(1)
 		}
 
-		if directives.Size == token.EightBit {
+		switch label.part {
+		case higherBits:
+			code[loc] = uint8(memloc>>8) + uint8(label.offset>>8)
+		case lowerBits:
 			code[loc] = uint8(memloc) + uint8(label.offset)
-		} else {
-			switch label.part {
-			case higherBits:
-				code[loc] = uint8(memloc>>8) + uint8(label.offset>>8)
-			case lowerBits:
-				code[loc] = uint8(memloc) + uint8(label.offset)
-			case fullBits:
-				fallthrough
-			default:
-				code[loc] = uint8(memloc>>8) + uint8(label.offset>>8)
-				code[loc+1] = uint8(memloc) + uint8(label.offset)
-			}
+		case fullBits:
+			fallthrough
+		default:
+			code[loc] = uint8(memloc>>8) + uint8(label.offset>>8)
+			code[loc+1] = uint8(memloc) + uint8(label.offset)
 		}
 	}
 
@@ -346,7 +306,7 @@ func (l *Lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
 				ind = subIndex
 			}
 			label = instruction[1][1:ind]
-			offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 16, 8)
+			offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 0, 8)
 			if err != nil {
 				fmt.Printf("Invalid offset on line %d\n", l.linenum)
 				os.Exit(1)
@@ -356,18 +316,15 @@ func (l *Lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
 				offset = -offset
 			}
 		}
-		l.labelPlaces[l.currMemLocation+1] = labelReplace{
+		l.labelPlaces[l.currMemLocation+2] = labelReplace{
 			l:      string(label),
 			offset: offset,
 			part:   bits,
 		}
 	} else if instruction[1][0] == '\'' { // Literal byte character
 		digit = uint64(instruction[1][1])
-	} else { // Byte hex
-		if instruction[1][0] == '0' && len(instruction[1]) > 1 && (instruction[1][1] == 'x' || instruction[1][1] == 'X') {
-			instruction[1] = instruction[1][2:]
-		}
-		digit, err = strconv.ParseUint(string(instruction[1]), 16, 8)
+	} else {
+		digit, err = strconv.ParseUint(string(instruction[1]), 0, 8)
 		if err != nil {
 			return 0, 0
 		}
@@ -413,7 +370,7 @@ func (l *Lexer) oneRegTwoByte(instruction [][]byte) (uint8, uint16) {
 				ind = subIndex
 			}
 			label = instruction[1][1:ind]
-			offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 16, 16)
+			offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 0, 16)
 			if err != nil {
 				fmt.Printf("Invalid offset on line %d\n", l.linenum)
 				os.Exit(1)
@@ -423,18 +380,15 @@ func (l *Lexer) oneRegTwoByte(instruction [][]byte) (uint8, uint16) {
 				offset = -offset
 			}
 		}
-		l.labelPlaces[l.currMemLocation+1] = labelReplace{
+		l.labelPlaces[l.currMemLocation+2] = labelReplace{
 			l:      string(label),
 			offset: offset,
 			part:   bits,
 		}
 	} else if instruction[1][0] == '\'' { // Literal byte character
 		digit = uint64(instruction[1][1])
-	} else { // Byte hex
-		if instruction[1][0] == '0' && len(instruction[1]) > 1 && (instruction[1][1] == 'x' || instruction[1][1] == 'X') {
-			instruction[1] = instruction[1][2:]
-		}
-		digit, err = strconv.ParseUint(string(instruction[1]), 16, 16)
+	} else {
+		digit, err = strconv.ParseUint(string(instruction[1]), 0, 16)
 		if err != nil {
 			return 0, 0
 		}
