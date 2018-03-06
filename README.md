@@ -17,7 +17,7 @@ and machine printer to standard out. Both of these can be changed using CLI flag
 
 - `-in`: Path to the input code file.
 - `-out`: Path to the output file. If this is the text "stdout", output will be printed to standard output instead of a file.
-- `-state`: Print the machine state before every instruction execution.
+- `-state`: Print the machine state before every instruction execution. (this will be very large for 16-bit programs)
 - `-printmem`: Print the initial memory state after loading the code. Not instructions are executed.
 - `-compile`: Compile a source file and output it to a binary file. The binary still needs the runtime to
 execute. It can be used with the "-in" flag. The loader will automatically load the binary if
@@ -34,6 +34,16 @@ Memory cell addresses are from 00-FF in hex so their addresses are 8 bits.
 Storing a value in cell FF will result in the value's ASCII representation being printed to the machine printer.
 The cell's value will then be reset to 0. Because of this, memory address FF can't actually hold a value
 between instruction loads.
+
+### Experimental
+
+There is an experimental arch mode that allows for 16-bit addressing. The register sizes do not change.
+Special syntax is used to get the higher or lower 8 bits of an address label. This syntax as well as other
+changes are explained further below.
+
+16-bit addressing can be enabled by using the directive `@bits 16` at the beginning of a source file.
+Compiler directives must be before any other code. Comments and empty lines may be before a directive line.
+See the "funcs and stack 16.asml" file in the examples directory to see a 16-bit program example.
 
 ## Language
 
@@ -64,6 +74,11 @@ Single bytes can be used by enclosing them in single quotes. (`'H'`)
 
 Raw bytes can be used when the line doesn't start with a comment, label, or instruction.
 See the data section examples below.
+
+#### 16 bits
+
+When using 16 bit addressing, some instructions take an extra byte for the second half of a full
+16 bit address. The instructions are marked in the table below.
 
 ### Comments
 
@@ -107,6 +122,17 @@ LOADA %1 ~data+1
 13 42
 ```
 
+#### 16 bits
+
+The first and second byte of a two byte address can be retrieved using a special syntax. This allows using two registers together
+as a single address for the STRR and LOADR instructions.
+
+To get the first byte: `~^label`
+
+To get the second byte: <code>~\`label</code>
+
+To get the full addresss: `~label`
+
 ## Instruction Set
 
 In the table below, the first column is the opcode in hexadecimal. The second column is a syntax
@@ -118,24 +144,23 @@ it will be the first operand.
 | Opcode | Operands | Description                                                                                                                                 |
 |--------|----------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | 0      | 000      | NOOP                                                                                                                                        |
-| 1      | RXY      | Load the value in memory address XY into register R.                                                                                        |
+| 1+     | RXY      | Load the value in memory address XY into register R.                                                                                        |
 | 2      | RXY      | Load the value XY into register R.                                                                                                          |
-| 3      | RXY      | Store the value of register R into memory address XY.                                                                                       |
+| 3+     | RXY      | Store the value of register R into memory address XY.                                                                                       |
 | 4      | 0RS      | Move the value of register S into register R.                                                                                               |
 | 5      | RST      | Add the values in registers S and T using 2's compliment. The result will be stored in register R.                                          |
-| 6      | RST      | Not implemented.                                                                                                                            |
+| 6      |          | Used internally by compiler.                                                                                                                |
 | 7      | RST      | OR the values of registers S and T and store the value in register R.                                                                       |
 | 8      | RST      | AND the values of registers S and T and store the value in register R.                                                                      |
 | 9      | RST      | XOR the values of registers S and T and store the value in register R.                                                                      |
 | A      | R0X      | Rotate the bits of register R to the right X places. Bits are shifted to the right and lower order bits are moved to the higher order bits. |
-| B      | RXY      | Jump to memory address XY if the value in register R equals the value in register 0.                                                        |
+| B+     | RXY      | Jump to memory address XY if the value in register R equals the value in register 0.                                                        |
 | C      | 000      | Halt execution.                                                                                                                             |
-| D*     | 0RS      | Store the value of register S into the memory address stored in register R.                                                                 |
-| E*     | 0RS      | Load the value at the memory address stored in register S to register R.                                                                    |
+| D      | 0RS      | Store the value of register S into the memory address stored in register R.                                                                 |
+| E      | 0RS      | Load the value at the memory address stored in register S to register R.                                                                    |
 | F      |          | Not implemented.                                                                                                                            |
 
-\* These instructions are not part of the original language. They were added to implement a
-stack using the value of a register as a memory address.
+\+ These instructions take another byte to make the two bytes of a 16-bit address.
 
 ## Mnemonics
 
@@ -157,6 +182,14 @@ stack using the value of a register as a memory address.
 | D      | STRR     | STRR %R %S   |
 | E      | LOADR    | LOADR %R %S  |
 | F      |          |              |
+
+### 16 bits
+
+* LOADA, STRA, and JMP all take a full 16-bit integer (in hex or a label) as an argument
+* STRR and LOADR commands will take the registers %S and %S+1 as the higher and lower 8-bits
+of a full 16-bit address. For example, the instruction `STRR %1 %A` will store the value of
+register 1 into the memory address (%A<<8 + %B). If register A is "0x4F" and register B is "0x7A"
+then the memory address will be "0x4F7A".
 
 ## Example
 

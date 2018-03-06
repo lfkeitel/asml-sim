@@ -1,4 +1,4 @@
-package lexer
+package token
 
 // Language opcodes
 const (
@@ -8,7 +8,7 @@ const (
 	STRA  byte = 3
 	MOVR  byte = 4
 	ADD   byte = 5
-	ADDF  byte = 6
+	FLAGS byte = 6
 	OR    byte = 7
 	AND   byte = 8
 	XOR   byte = 9
@@ -19,14 +19,14 @@ const (
 	LOADR byte = 14
 )
 
-var opcodes = map[string]byte{
+var Opcodes = map[string]byte{
 	"NOOP":  NOOP,
 	"LOADA": LOADA,
 	"LOADI": LOADI,
 	"STRA":  STRA,
 	"MOVR":  MOVR,
 	"ADD":   ADD,
-	"ADDF":  ADDF,
+	"ADDF":  FLAGS,
 	"OR":    OR,
 	"AND":   AND,
 	"XOR":   XOR,

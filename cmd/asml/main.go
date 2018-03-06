@@ -11,12 +11,18 @@ import (
 )
 
 var (
-	infile      string
-	outfile     string
-	showState   bool
-	printMem    bool
-	printLegacy bool
-	compile     bool
+	infile       string
+	outfile      string
+	showState    bool
+	printMem     bool
+	printLegacy  bool
+	compile      bool
+	printVersion bool
+
+	version   string
+	buildTime string
+	builder   string
+	goversion string
 )
 
 func init() {
@@ -25,10 +31,16 @@ func init() {
 	flag.BoolVar(&showState, "state", false, "Disable writting state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
 	flag.BoolVar(&compile, "compile", false, "Compile file to ASML program")
+	flag.BoolVar(&printVersion, "version", false, "Print version information")
 }
 
 func main() {
 	flag.Parse()
+
+	if printVersion {
+		printVersionInfo()
+		return
+	}
 
 	code := loadCode()
 
@@ -88,4 +100,13 @@ func loadCode() []uint8 {
 
 	lex := lexer.New(file)
 	return lex.Lex()
+}
+
+func printVersionInfo() {
+	fmt.Printf(`ASML Virtual Machine - (C) 2018 Lee Keitel
+Version:     %s
+Built:       %s
+Compiled by: %s
+Go version:  %s
+`, version, buildTime, builder, goversion)
 }

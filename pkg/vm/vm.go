@@ -7,27 +7,46 @@ import (
 	"math/bits"
 	"os"
 
-	"github.com/lfkeitel/asml-sim/pkg/lexer"
+	"github.com/lfkeitel/asml-sim/pkg/token"
 )
 
 const (
-	numOfMemoryCells = 256
-	numOfRegisters   = 16
+	numOfRegisters = 16
+)
+
+var (
+	memoryCellCount = [...]int{
+		256,
+		65536,
+	}
 )
 
 type VM struct {
 	registers  []uint8
 	memory     []uint8
-	pc         uint8
+	pc         uint16
 	output     bytes.Buffer
 	printer    bytes.Buffer
 	printState bool
+	flags      *token.Flags
+	memorySize int
 }
 
 func New(code []uint8, printState bool) *VM {
+	if len(code) < 2 {
+		fmt.Println("No code given")
+		os.Exit(1)
+	}
+
+	flags, valid := token.FlagsFromBytes([]byte{code[0], code[1]})
+	if valid {
+		code = code[2:]
+	}
+
+	numOfMemoryCells := memoryCellCount[flags.Size]
 	if len(code) > numOfMemoryCells-1 { // Reserve printer cell
 		fmt.Println("Program too big")
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	newvm := &VM{
@@ -35,6 +54,8 @@ func New(code []uint8, printState bool) *VM {
 		memory:     make([]uint8, numOfMemoryCells),
 		pc:         0,
 		printState: printState,
+		flags:      flags,
+		memorySize: numOfMemoryCells,
 	}
 
 	for i, c := range code {
@@ -62,46 +83,58 @@ mainLoop:
 		}
 
 		switch opcode {
-		case lexer.NOOP:
+		case token.NOOP:
 			// noop
-		case lexer.LOADA:
+		case token.LOADA:
 			vm.writeStateMessage("LOADA\n")
-			vm.loadFromMem(operand1, operand2, operand3)
-		case lexer.LOADI:
+			d1 := (operand2 << 4) + operand3
+			var d2 uint8
+			if vm.flags.Size == token.SixteenBit {
+				d2 = vm.memory[vm.pc+2]
+				vm.pc++
+			}
+			vm.loadFromMem(operand1, d1, d2)
+		case token.LOADI:
 			vm.writeStateMessage("LOADI\n")
 			vm.loadIntoReg(operand1, operand2, operand3)
-		case lexer.STRA:
-			if operand2 == 15 && operand3 == 15 {
-				vm.writeStateMessage("PRINT\n")
-			} else {
-				vm.writeStateMessage("STOREA\n")
+		case token.STRA:
+			d1 := (operand2 << 4) + operand3
+			var d2 uint8
+			if vm.flags.Size == token.SixteenBit {
+				d2 = vm.memory[vm.pc+2]
+				vm.pc++
 			}
-			vm.storeRegInMemory(operand1, operand2, operand3)
-		case lexer.MOVR:
+
+			vm.writeStateMessage("STOREA\n")
+			vm.storeRegInMemory(operand1, d1, d2)
+		case token.MOVR:
 			vm.writeStateMessage("MOVE\n")
 			vm.moveRegisters(operand2, operand3)
-		case lexer.ADD:
+		case token.ADD:
 			vm.writeStateMessage("ADD\n")
 			vm.addCompliment(operand1, operand2, operand3)
-		case lexer.ADDF:
-			vm.writeStateMessage("ADDF\n")
-			vm.addFloats(operand1, operand2, operand3)
-		case lexer.OR:
+		case token.OR:
 			vm.writeStateMessage("OR\n")
 			vm.orRegisters(operand1, operand2, operand3)
-		case lexer.AND:
+		case token.AND:
 			vm.writeStateMessage("AND\n")
 			vm.andRegisters(operand1, operand2, operand3)
-		case lexer.XOR:
+		case token.XOR:
 			vm.writeStateMessage("XOR\n")
 			vm.xorRegisters(operand1, operand2, operand3)
-		case lexer.ROT:
+		case token.ROT:
 			vm.writeStateMessage("ROTATE\n")
 			vm.rotateRegister(operand1, operand3)
-		case lexer.JMP:
+		case token.JMP:
 			vm.writeStateMessage("JUMP\n")
-			vm.jumpEq(operand1, operand2, operand3)
-		case lexer.HALT:
+			d1 := (operand2 << 4) + operand3
+			var d2 uint8
+			if vm.flags.Size == token.SixteenBit {
+				d2 = vm.memory[vm.pc+2]
+				vm.pc++
+			}
+			vm.jumpEq(operand1, d1, d2)
+		case token.HALT:
 			vm.writeStateMessage("HALT\n")
 			if vm.printState {
 				vm.writeString("\nPrinter: ")
@@ -109,10 +142,10 @@ mainLoop:
 			vm.writePrinter()
 			vm.writeString("\n")
 			break mainLoop
-		case lexer.STRR:
+		case token.STRR:
 			vm.writeStateMessage("STORER\n")
 			vm.storeRegInMemoryAddr(operand2, operand3)
-		case lexer.LOADR:
+		case token.LOADR:
 			vm.writeStateMessage("LOADR\n")
 			vm.loadRegInMemoryAddr(operand2, operand3)
 		default:
@@ -132,9 +165,9 @@ mainLoop:
 		vm.pc += 2
 
 		// Print character in memory address FF and reset it to 0
-		if vm.memory[255] > 0 {
-			vm.printer.WriteByte(byte(vm.memory[255]))
-			vm.memory[255] = 0
+		if vm.memory[vm.memorySize-1] > 0 {
+			vm.printer.WriteByte(byte(vm.memory[vm.memorySize-1]))
+			vm.memory[vm.memorySize-1] = 0
 		}
 	}
 
@@ -157,8 +190,25 @@ func (vm *VM) PrintState() {
 		vm.writeString(formatHex(val) + " ")
 	}
 
+	if vm.flags.Size == token.EightBit {
+		vm.printMemory8Bit()
+	} else if vm.flags.Size == token.SixteenBit {
+		vm.printMemory16Bit()
+	}
+
+	vm.writeString("\nProgram Counter  = ")
+	vm.writeString(formatHex16(vm.pc))
+
+	vm.writeString("\nNext Instruction = ")
+	vm.writeString(formatHex(vm.memory[vm.pc]))
+	vm.writeString(" ")
+	vm.writeString(formatHex(vm.memory[vm.pc+1]))
+	vm.writeString(" ")
+}
+
+func (vm *VM) printMemory8Bit() {
 	vm.writeString("\n\nMemory     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n\n")
-	for i := 0; i < numOfMemoryCells; i = i + 16 {
+	for i := 0; i < vm.memorySize; i = i + 16 {
 		vm.writeString(formatHex(uint8(i)))
 		vm.writeString("         ")
 
@@ -169,15 +219,27 @@ func (vm *VM) PrintState() {
 
 		vm.writeString("\n")
 	}
+}
 
-	vm.writeString("\nProgram Counter  = ")
-	vm.writeString(formatHex(vm.pc))
+func (vm *VM) printMemory16Bit() {
+	vm.writeString("\n\nMemory     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F\n\n")
+	for i := 0; i < vm.memorySize; i = i + 32 {
+		vm.writeString(formatHex16(uint16(i)))
+		vm.writeString("       ")
 
-	vm.writeString("\nNext Instruction = ")
-	vm.writeString(formatHex(vm.memory[vm.pc]))
-	vm.writeString(" ")
-	vm.writeString(formatHex(vm.memory[vm.pc+1]))
-	vm.writeString(" ")
+		for j := 0; j < 16; j++ {
+			vm.writeString(formatHex(vm.memory[i+j]))
+			vm.writeString(" ")
+		}
+		vm.writeString(" ")
+
+		for j := 16; j < 32; j++ {
+			vm.writeString(formatHex(vm.memory[i+j]))
+			vm.writeString(" ")
+		}
+
+		vm.writeString("\n")
+	}
 }
 
 func (vm *VM) writeString(s string) {
@@ -193,10 +255,18 @@ func formatHex(num uint8) string {
 	return fmt.Sprintf("%02X", num)
 }
 
+func formatHex16(num uint16) string {
+	return fmt.Sprintf("%04X", num)
+}
+
 // Opcode definitions
 
 func (vm *VM) loadFromMem(r, x, y uint8) {
-	vm.registers[r] = vm.memory[(x<<4)+y]
+	if vm.flags.Size == token.EightBit {
+		vm.registers[r] = vm.memory[x]
+	} else {
+		vm.registers[r] = vm.memory[(uint16(x)<<8)+uint16(y)]
+	}
 }
 
 func (vm *VM) loadIntoReg(r, x, y uint8) {
@@ -204,7 +274,11 @@ func (vm *VM) loadIntoReg(r, x, y uint8) {
 }
 
 func (vm *VM) storeRegInMemory(r, x, y uint8) {
-	vm.memory[(x<<4)+y] = vm.registers[r]
+	if vm.flags.Size == token.EightBit {
+		vm.memory[x] = vm.registers[r]
+	} else {
+		vm.memory[(uint16(x)<<8)+uint16(y)] = vm.registers[r]
+	}
 }
 
 func (vm *VM) moveRegisters(r, s uint8) {
@@ -213,10 +287,6 @@ func (vm *VM) moveRegisters(r, s uint8) {
 
 func (vm *VM) addCompliment(r, s, t uint8) {
 	vm.registers[r] = uint8(int8(vm.registers[s]) + int8(vm.registers[t]))
-}
-
-func (vm *VM) addFloats(r, s, t uint8) {
-	// Not implemented
 }
 
 func (vm *VM) orRegisters(r, s, t uint8) {
@@ -235,16 +305,28 @@ func (vm *VM) rotateRegister(r, x uint8) {
 	vm.registers[r] = bits.RotateLeft8(vm.registers[r], int(-x))
 }
 
-func (vm *VM) jumpEq(r, x, y uint8) {
+func (vm *VM) jumpEq(r, d1, d2 uint8) {
 	if vm.registers[r] == vm.registers[0] {
-		vm.pc = ((x << 4) + y) - 2 // The main loop adds 2, compensate
+		if vm.flags.Size == token.EightBit {
+			vm.pc = uint16(d1) - 2 // The main loop adds 2, compensate
+		} else {
+			vm.pc = (uint16(d1) << 8) + uint16(d2) - 2 // The main loop adds 2, compensate
+		}
 	}
 }
 
-func (vm *VM) storeRegInMemoryAddr(r, s uint8) {
-	vm.memory[vm.registers[r]] = vm.registers[s]
+func (vm *VM) storeRegInMemoryAddr(d, s uint8) {
+	if vm.flags.Size == token.EightBit {
+		vm.memory[vm.registers[d]] = vm.registers[s]
+	} else {
+		vm.memory[uint16(vm.registers[d])<<8+uint16(vm.registers[d+1])] = vm.registers[s]
+	}
 }
 
-func (vm *VM) loadRegInMemoryAddr(r, s uint8) {
-	vm.registers[r] = vm.memory[vm.registers[s]]
+func (vm *VM) loadRegInMemoryAddr(d, s uint8) {
+	if vm.flags.Size == token.EightBit {
+		vm.registers[d] = vm.memory[vm.registers[s]]
+	} else {
+		vm.registers[d] = vm.memory[uint16(vm.registers[s])<<8+uint16(vm.registers[s+1])]
+	}
 }
