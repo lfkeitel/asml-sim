@@ -11,12 +11,18 @@ import (
 )
 
 var (
-	infile      string
-	outfile     string
-	showState   bool
-	printMem    bool
-	printLegacy bool
-	compile     bool
+	infile       string
+	outfile      string
+	showState    bool
+	printMem     bool
+	printLegacy  bool
+	compile      bool
+	printVersion bool
+
+	version   string
+	buildTime string
+	builder   string
+	goversion string
 )
 
 func init() {
@@ -25,29 +31,21 @@ func init() {
 	flag.BoolVar(&showState, "state", false, "Disable writting state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
 	flag.BoolVar(&compile, "compile", false, "Compile file to ASML program")
+	flag.BoolVar(&printVersion, "version", false, "Print version information")
 }
 
 func main() {
 	flag.Parse()
 
+	if printVersion {
+		printVersionInfo()
+		return
+	}
+
 	code := loadCode()
 
 	if compile {
-		var out io.WriteCloser
-		if outfile == "stdout" {
-			out = os.Stdout
-		} else {
-			var err error
-			out, err = os.OpenFile(outfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-		}
-
-		out.Write(lexer.ASMLHeader)
-		out.Write(code)
-		out.Close()
+		writeCompiledCode(code)
 		return
 	}
 
@@ -88,4 +86,32 @@ func loadCode() []uint8 {
 
 	lex := lexer.New(file)
 	return lex.Lex()
+}
+
+func printVersionInfo() {
+	fmt.Printf(`ASML Virtual Machine - (C) 2018 Lee Keitel
+Architecture: 8-bit
+Version:      %s
+Built:        %s
+Compiled by:  %s
+Go version:   %s
+`, version, buildTime, builder, goversion)
+}
+
+func writeCompiledCode(code []uint8) {
+	var out io.WriteCloser
+	if outfile == "stdout" {
+		out = os.Stdout
+	} else {
+		var err error
+		out, err = os.OpenFile(outfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	out.Write(lexer.ASMLHeader)
+	out.Write(code)
+	out.Close()
 }
