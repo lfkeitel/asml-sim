@@ -90,15 +90,24 @@ func (l *Lexer) Lex() []uint8 {
 			continue
 		}
 
+		if bytes.Equal([]byte("@runtime"), line) {
+			if len(code) != 0 {
+				fmt.Printf("Compiler directives must be before any code. Error in line %d\n", l.linenum)
+				os.Exit(1)
+			}
+			code = append(code, runtime...)
+			for n, o := range runtimeLabels {
+				l.labels[n] = o
+			}
+			l.currMemLocation += uint8(len(code))
+			continue
+		}
+
 		instruction := bytes.Split(line, []byte{' '})
 		opcode, valid := opcodes[string(instruction[0])]
 		if !valid { // Literal bytes
 			for _, rawbyte := range instruction {
-				if rawbyte[0] == '0' && len(rawbyte) > 1 && (rawbyte[1] == 'x' || rawbyte[1] == 'X') {
-					rawbyte = rawbyte[2:]
-				}
-
-				raw, err := strconv.ParseUint(string(rawbyte), 16, 8)
+				raw, err := strconv.ParseUint(string(rawbyte), 0, 8)
 				if err != nil {
 					fmt.Printf("Invalid byte sequence on line %d: %v\n", l.linenum, err)
 					os.Exit(1)
@@ -118,7 +127,7 @@ func (l *Lexer) Lex() []uint8 {
 		case MOVR, STRR, LOADR:
 			reg1, reg2 := l.twoRegisters(instruction[1:])
 			code = append(code, opcode<<4, reg1<<4+reg2)
-		case ADD, ADDF, OR, AND, XOR:
+		case ADD, OR, AND, XOR:
 			reg1, reg2, reg3 := l.threeRegisters(instruction[1:])
 			code = append(code, opcode<<4+reg1, reg2<<4+reg3)
 		case LOADA, LOADI, STRA, JMP:
@@ -260,7 +269,7 @@ func (l *Lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
 				ind = subIndex
 			}
 			label = instruction[1][1:ind]
-			offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 16, 8)
+			offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 0, 8)
 			if err != nil {
 				fmt.Printf("Invalid offset on line %d\n", l.linenum)
 				os.Exit(1)
@@ -270,132 +279,21 @@ func (l *Lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
 				offset = -offset
 			}
 		}
-		l.labelPlaces[l.currMemLocation+1] = labelReplace{
-			l:      string(label),
-			offset: offset,
+		if label[0] == '$' {
+			digit = uint64(l.currMemLocation + offset)
+		} else {
+			l.labelPlaces[l.currMemLocation+1] = labelReplace{
+				l:      string(label),
+				offset: offset,
+			}
 		}
 	} else if instruction[1][0] == '\'' { // Literal byte character
 		digit = uint64(instruction[1][1])
-	} else { // Byte hex
-		if instruction[1][0] == '0' && len(instruction[1]) > 1 && (instruction[1][1] == 'x' || instruction[1][1] == 'X') {
-			instruction[1] = instruction[1][2:]
-		}
-		digit, err = strconv.ParseUint(string(instruction[1]), 16, 8)
+	} else {
+		digit, err = strconv.ParseUint(string(instruction[1]), 0, 8)
 		if err != nil {
 			return 0, 0
 		}
 	}
 	return uint8(reg), uint8(digit)
-}
-
-// Old lexer for original syntax, kept for maybe a compatibility mode
-func (l *Lexer) Lexold() []uint8 {
-	// Read in a compiled ASML file
-	header := make([]byte, 4)
-	n, err := l.in.Read(header)
-	if err != nil {
-		fmt.Printf("Error reading file header: %s\n", err)
-		os.Exit(1)
-	}
-	if n < 4 {
-		fmt.Println("Invalid file")
-		os.Exit(1)
-	}
-
-	if bytes.Equal(header, ASMLHeader) {
-		var buf bytes.Buffer
-		io.Copy(&buf, l.in)
-		return buf.Bytes()
-	}
-
-	// Rewind file to read in as source
-	l.in.Seek(0, 0)
-	reader := bufio.NewReader(l.in)
-	var code []uint8
-	linenum := 0
-	labels := make(map[string]uint8)            // Label definitions
-	labelPlaces := make(map[uint8]labelReplace) // Memory locations that need labels
-	currMemLocation := uint8(0)
-
-	for {
-		line, _, err := reader.ReadLine()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			panic(err)
-		}
-		linenum++
-
-		line = bytes.TrimSpace(line)
-		if len(line) == 0 || line[0] == ';' { // comment/blank line
-			continue
-		}
-
-		if line[0] == ':' { // label definition
-			labels[string(line[1:])] = currMemLocation
-			continue
-		}
-
-		instruction := bytes.SplitN(line, []byte{' '}, 2)
-		byte1, err := strconv.ParseUint(string(instruction[0]), 16, 8)
-		if err != nil {
-			fmt.Printf("Error on line %d, invalid byte\n", linenum)
-			os.Exit(1)
-		}
-
-		if len(instruction) != 2 {
-			fmt.Printf("Error on line %d, expected two bytes got 1\n", linenum)
-			os.Exit(1)
-		}
-
-		if instruction[1][0] == '~' {
-			label := instruction[1][1:]
-			var offset uint8
-			addIndex := bytes.Index(instruction[1], []byte{'+'})
-			subIndex := bytes.Index(instruction[1], []byte{'-'})
-			if addIndex > 0 || subIndex > 0 {
-				ind := addIndex
-				if subIndex > 0 {
-					ind = subIndex
-				}
-				label = instruction[1][1:ind]
-				offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 16, 8)
-				if err != nil {
-					fmt.Printf("Invalid offset on line %d\n", linenum)
-					os.Exit(1)
-				}
-				offset = uint8(offset64)
-				if subIndex > 0 {
-					offset = -offset
-				}
-			}
-			labelPlaces[currMemLocation+1] = labelReplace{
-				l:      string(label),
-				offset: offset,
-			}
-			code = append(code, uint8(byte1), 0)
-		} else {
-			byte2, err := strconv.ParseUint(string(instruction[1]), 16, 8)
-			if err != nil {
-				fmt.Printf("Error on line %d, invalid byte\n", linenum)
-				os.Exit(1)
-			}
-
-			code = append(code, uint8(byte1), uint8(byte2))
-		}
-		currMemLocation += 2
-	}
-
-	// Replace labels
-	for loc, label := range labelPlaces {
-		memloc, exists := labels[label.l]
-		if !exists {
-			fmt.Printf("Label %s not defined\n", label.l)
-			os.Exit(1)
-		}
-		code[loc] = memloc + label.offset
-	}
-
-	return code
 }

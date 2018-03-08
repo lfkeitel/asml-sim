@@ -83,9 +83,6 @@ mainLoop:
 		case lexer.ADD:
 			vm.writeStateMessage("ADD\n")
 			vm.addCompliment(operand1, operand2, operand3)
-		case lexer.ADDF:
-			vm.writeStateMessage("ADDF\n")
-			vm.addFloats(operand1, operand2, operand3)
 		case lexer.OR:
 			vm.writeStateMessage("OR\n")
 			vm.orRegisters(operand1, operand2, operand3)
@@ -213,10 +210,6 @@ func (vm *VM) moveRegisters(r, s uint8) {
 
 func (vm *VM) addCompliment(r, s, t uint8) {
 	vm.registers[r] = uint8(int8(vm.registers[s]) + int8(vm.registers[t]))
-}
-
-func (vm *VM) addFloats(r, s, t uint8) {
-	// Not implemented
 }
 
 func (vm *VM) orRegisters(r, s, t uint8) {

@@ -52,15 +52,20 @@ into a single value, but conceptually they are still separate operands.
 Each instruction is written using mnemonics:
 
 ```
-LOADI %1 FF
+LOADI %1 0xFF
 HALT
 ```
 
 '%' denotes a register. (%0 - %F)
 
-Hex numbers use no special syntax. For readability, the syntax `0x##` is also valid.
+Literals have various forms depending on the base. The prefix '0x' denotes a hexadecimal number, the prefix '0' is an octal
+number, anything else is assumed to be a decimal number. Literals are parsed as unsigned values. To make negative numbers,
+use the two's compliment of the value in hex.
 
 Single bytes can be used by enclosing them in single quotes. (`'H'`)
+
+Strings can be used on a line by themselves by enclosing a string in double quotes. The containing bytes are inserted as
+is an interpreted as raw data.
 
 Raw bytes can be used when the line doesn't start with a comment, label, or instruction.
 See the data section examples below.
@@ -107,6 +112,17 @@ LOADA %1 ~data+1
 13 42
 ```
 
+The special label `~$` denotes the memory address of the current instruction. Offsets are just as valid so this label can
+be used especially for return addresses as an offset of the current instruction.
+
+### Directives
+
+Lines beginning with an at sign `@` are directives to the compiler.
+
+Available directives:
+
+- `@runtime` - Include the standard runtime code and labels. See `examples/runtime.asml` for what is loaded.
+
 ## Instruction Set
 
 In the table below, the first column is the opcode in hexadecimal. The second column is a syntax
@@ -123,7 +139,7 @@ it will be the first operand.
 | 3      | RXY      | Store the value of register R into memory address XY.                                                                                       |
 | 4      | 0RS      | Move the value of register S into register R.                                                                                               |
 | 5      | RST      | Add the values in registers S and T using 2's compliment. The result will be stored in register R.                                          |
-| 6      | RST      | Not implemented.                                                                                                                            |
+| 6      |          | Not implemented.                                                                                                                            |
 | 7      | RST      | OR the values of registers S and T and store the value in register R.                                                                       |
 | 8      | RST      | AND the values of registers S and T and store the value in register R.                                                                      |
 | 9      | RST      | XOR the values of registers S and T and store the value in register R.                                                                      |
@@ -167,25 +183,24 @@ The following example prints the character 'X' to the printer 3 times using a lo
 LOADI %1 3
 
 ; Register 2 - constant -1
-LOADI %2 FF
+LOADI %2 0xFF
 
 ; Register 3 - char X
 LOADI %3 'X'
 
 :print_x
 ; Print X
-STRA %3 FF
+STRA %3 0xFF
 
 ; Add r1 and r2 (r1 - 1), store in r1
 ADD %1 %1 %2
 
-; Check if loop counter is 0
-JMP %1 ~end
+; If loop counter is zero, jump past next instruction
+JMP %1 ~$+4
 
 ; Unconditional jump to print X
 JMP %0 ~print_x
 
-:end
 ; Exit
 HALT
 ```
