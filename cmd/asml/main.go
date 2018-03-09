@@ -104,9 +104,10 @@ func loadCode() []uint8 {
 
 func printVersionInfo() {
 	fmt.Printf(`ASML Virtual Machine - (C) 2018 Lee Keitel
-Version:     %s
-Built:       %s
-Compiled by: %s
-Go version:  %s
+Architecture: 16-bit
+Version:      %s
+Built:        %s
+Compiled by:  %s
+Go version:   %s
 `, version, buildTime, builder, goversion)
 }
