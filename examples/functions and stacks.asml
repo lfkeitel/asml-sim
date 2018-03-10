@@ -1,33 +1,14 @@
 ; Print "Hello" using a print function
-; Hello = x48 x65 x6C x6C x6F
 
-; Reserved registers:
-;   Register 0 = constant 0 - Used for unconditional jumps
-;   Register C = constant -1 - Used to manipulate stack pointer
-;   Register D = constant 1 - Used to manipulate stack pointer
-;   Register E = stack pointer - Points to next available stack address
-;   Register F = link register - Address to return when called functions finishes
+; This example uses the convential ASML runtime. See runtime.asml for the implementation. The runtime takes 16 bytes.
 
-; Functions are implemented by using what's known as a Wheeler jump. Basically, we edit the running
-; code to change an address in a jump command. The address is retrieved from a known register so calling
-; functions can set the return address to what they need. Labels are used liberally for return addresses.
-; A stack is used to store link addresses when a subroutine has to call another subroutine. The original
-; subroutine will then pop the stack and restore the original link address before returning.
-;
-; As much as I wanted to do this using only the original implementation instructions, it simply wasn't possible.
-; There was no way to treat a register value as an address to store a value. So, opcodes D and E were added to
-; store and load register values into an address stored in another register. This allows using one register as
-; a stack pointer and store data to that address. Other registers are reserved to increment and decrement the
-; stack pointer. The stack begins at memory address FE (FF is the print address so can't be used) and grows down.
-; There is no mechanism to check for an "out-of-bounds" stack. It's fully possible for the stack to overrun existing
-; memory if care is not taken.
+; Import runtime code
+; Available lables:
+;   ~exit
+;   ~return
+@runtime
 
 :main
-    LOADI %C 0xFFFF
-    LOADI %D 01
-    ; Stack starts at largest memory address minus 2
-    LOADI %E 0xFFFC
-
     ; Print H
     LOADI %1 'H'
     LOADI %F ~$+8
@@ -45,22 +26,10 @@
     JMP %0 ~print
     ; Print o
     LOADI %1 'o'
-    LOADI %F ~end
+    LOADI %F ~exit
     JMP %0 ~print
 
-; Halt
-:end
-    HALT
-
 ; Subroutines
-
-; return will jump to the address in register F
-; Wheeler jumps for the win!
-:return
-    ; Edit jump address in next instruction to the location in register F
-    STRA %F ~$+6
-    ; this instruction will always be edited to the value in register F
-    JMP %0 ~end
 
 ; Print the argument in R1
 :print

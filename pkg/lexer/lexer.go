@@ -104,8 +104,19 @@ func (l *Lexer) Lex() []uint8 {
 
 		if line[0] == '@' { // Compiler directive
 			if len(code) != 0 {
-				fmt.Println("Directives must be before any code")
+				fmt.Printf("Compiler directives must be before any code. Error in line %d\n", l.linenum)
 				os.Exit(1)
+			}
+
+			if bytes.Equal([]byte("@runtime"), line) {
+				code = append(code, runtime...)
+				for n, o := range runtimeLabels {
+					l.labels[n] = o
+				}
+				l.currMemLocation += uint16(len(code))
+				l.labelPlaces[mainLabelLoc] = labelReplace{
+					l: "main",
+				}
 			}
 			continue
 		}
