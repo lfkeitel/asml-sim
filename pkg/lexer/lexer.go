@@ -100,6 +100,9 @@ func (l *Lexer) Lex() []uint8 {
 				l.labels[n] = o
 			}
 			l.currMemLocation += uint8(len(code))
+			l.labelPlaces[mainLabelLoc] = labelReplace{
+				l: "main",
+			}
 			continue
 		}
 

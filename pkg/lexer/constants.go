@@ -55,10 +55,11 @@ JMP %0 ~main
 	JMP %0 ~exit
 -----------------------
 
-The main label is supplied by user code.
+The main label is supplied by user code and resolved at link time.
 */
 var runtime = []byte{0x2C, 0xFF, 0x2D, 0x01, 0x2E, 0xFE, 0x2F, 0x0A, 0xB0, 0x10, 0xC0, 0x00, 0x3F, 0x0F, 0xB0, 0x0A}
 var runtimeLabels = map[string]uint8{
 	"exit":   0x0A,
 	"return": 0x0C,
 }
+var mainLabelLoc = uint8(9)

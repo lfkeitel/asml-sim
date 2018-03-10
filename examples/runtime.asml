@@ -21,6 +21,9 @@
 ; There is no mechanism to check for an "out-of-bounds" stack. It's fully possible for the stack to overrun existing
 ; memory if care is not taken.
 
+; The exit labels are not resolved at link time since both the jump instruction and its definition are
+; part of the same code. The main label is resolved at link time so it can be anywhere in the code.
+
 ; BEGIN - Runtime - 16 bytes
 ; Setup registers
 LOADI %C 0xFF
