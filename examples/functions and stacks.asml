@@ -30,27 +30,19 @@
 
     ; Print H
     LOADI %1 'H'
-    LOADI %F ~e
+    LOADI %F ~$+8
     JMP %0 ~print
-
-:e
     ; Print e
     LOADI %1 'e'
-    LOADI %F ~l
+    LOADI %F ~$+8
     JMP %0 ~print
-
-:l
     ; Print ll
     LOADI %1 'l'
-    LOADI %F ~l2
+    LOADI %F ~$+8
     JMP %0 ~print
-
-:l2
     LOADI %1 'l'
-    LOADI %F ~o
+    LOADI %F ~$+8
     JMP %0 ~print
-
-:o
     ; Print o
     LOADI %1 'o'
     LOADI %F ~end
@@ -65,9 +57,8 @@
 ; return will jump to the address in register F
 ; Wheeler jumps for the win!
 :return
-    ; Edit jump address in next instruction to the locaion in register F
-    STRA %F ~return_jump+2
-:return_jump
+    ; Edit jump address in next instruction to the location in register F
+    STRA %F ~$+6
     ; this instruction will always be edited to the value in register F
     JMP %0 ~end
 
@@ -83,10 +74,8 @@
     STRA %1 0xFFFE
 
     ; Call another function for demo
-    LOADI %F ~print_return
+    LOADI %F ~$+8
     JMP %0 ~increment_F0
-
-:print_return
     ; Pop return address from stack
     ; Decrement stack pointer by two
     ADD %E %E %D

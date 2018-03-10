@@ -172,10 +172,6 @@ func (l *Lexer) Lex() []uint8 {
 		}
 	}
 
-	for name, memloc := range l.labels {
-		fmt.Printf("%s: %04X\n", name, memloc)
-	}
-
 	return append(directives.Bytes(), code...)
 }
 
@@ -268,70 +264,6 @@ func (l *Lexer) threeRegisters(instruction [][]byte) (uint8, uint8, uint8) {
 	return uint8(reg1), uint8(reg2), uint8(reg3)
 }
 
-func (l *Lexer) oneRegOneByte(instruction [][]byte) (uint8, uint8) {
-	if len(instruction) < 2 {
-		return 0, 0
-	}
-
-	if instruction[0][0] != '%' {
-		return 0, 0
-	}
-
-	reg, err := strconv.ParseUint(string(instruction[0][1:]), 16, 8)
-	if err != nil {
-		return 0, 0
-	}
-	if reg > 15 {
-		reg = 0
-	}
-
-	var digit uint64
-	if instruction[1][0] == '~' { // Label
-		bits := fullBits
-		label := instruction[1][1:]
-		if label[0] == '^' {
-			bits = higherBits
-			label = label[1:]
-		} else if label[0] == '`' {
-			bits = lowerBits
-			label = label[1:]
-		}
-
-		var offset uint16
-		addIndex := bytes.Index(instruction[1], []byte{'+'})
-		subIndex := bytes.Index(instruction[1], []byte{'-'})
-		if addIndex > 0 || subIndex > 0 {
-			ind := addIndex
-			if subIndex > 0 {
-				ind = subIndex
-			}
-			label = instruction[1][1:ind]
-			offset64, err := strconv.ParseInt(string(instruction[1][ind+1:]), 0, 8)
-			if err != nil {
-				fmt.Printf("Invalid offset on line %d\n", l.linenum)
-				os.Exit(1)
-			}
-			offset = uint16(offset64)
-			if subIndex > 0 {
-				offset = -offset
-			}
-		}
-		l.labelPlaces[l.currMemLocation+2] = labelReplace{
-			l:      string(label),
-			offset: offset,
-			part:   bits,
-		}
-	} else if instruction[1][0] == '\'' { // Literal byte character
-		digit = uint64(instruction[1][1])
-	} else {
-		digit, err = strconv.ParseUint(string(instruction[1]), 0, 8)
-		if err != nil {
-			return 0, 0
-		}
-	}
-	return uint8(reg), uint8(digit)
-}
-
 func (l *Lexer) oneRegTwoByte(instruction [][]byte) (uint8, uint16) {
 	if len(instruction) < 2 {
 		return 0, 0
@@ -380,10 +312,14 @@ func (l *Lexer) oneRegTwoByte(instruction [][]byte) (uint8, uint16) {
 				offset = -offset
 			}
 		}
-		l.labelPlaces[l.currMemLocation+2] = labelReplace{
-			l:      string(label),
-			offset: offset,
-			part:   bits,
+		if label[0] == '$' {
+			digit = uint64(l.currMemLocation + offset)
+		} else {
+			l.labelPlaces[l.currMemLocation+2] = labelReplace{
+				l:      string(label),
+				offset: offset,
+				part:   bits,
+			}
 		}
 	} else if instruction[1][0] == '\'' { // Literal byte character
 		digit = uint64(instruction[1][1])

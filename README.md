@@ -116,6 +116,8 @@ To get the second byte: <code>~\`label</code>
 
 To get the full addresss: `~label`
 
+The special label `~$` references the address of the current instruction. Offsets may be used as normal.
+
 ## Instruction Set
 
 In the table below, the first column is the opcode in hexadecimal. The second column is a syntax
