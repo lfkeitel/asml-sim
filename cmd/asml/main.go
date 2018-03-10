@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	infile       string
 	outfile      string
 	showState    bool
 	printMem     bool
@@ -26,7 +25,6 @@ var (
 )
 
 func init() {
-	flag.StringVar(&infile, "in", "MachineIn.txt", "Input code")
 	flag.StringVar(&outfile, "out", "stdout", "Output file")
 	flag.BoolVar(&showState, "state", false, "Disable writting state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
@@ -42,7 +40,13 @@ func main() {
 		return
 	}
 
-	code := loadCode()
+	if flag.NArg() == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	infile := flag.Arg(0)
+	code := loadCode(infile)
 
 	if compile {
 		var out io.WriteCloser
@@ -90,7 +94,7 @@ func main() {
 	}
 }
 
-func loadCode() []uint8 {
+func loadCode(infile string) []uint8 {
 	file, err := os.Open(infile)
 	if err != nil {
 		fmt.Println(err.Error())
