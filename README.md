@@ -1,5 +1,7 @@
 # A Simple Machine Language Simulator
 
+'''This branch is not maintained. Please use the master or 8-bit branches instead.'''
+
 This is a Go implementation of a teaching simulator originally written in Java. This simulator
 is used to demonstrate machine programming in computer science courses. The instruction set is very
 limited, but that's the challenge now isn't it.
