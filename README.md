@@ -62,7 +62,7 @@ To make negative numbers, use the two's compliment of the value in hex.
 Single bytes can be used by enclosing them in single quotes. (`'H'`)
 
 Strings can be used on a line by themselves by enclosing a string in double quotes. The containing bytes
-are inserted as is an interpreted as raw data.
+are inserted as is and interpreted as raw data.
 
 Raw bytes can be used when the line doesn't start with a comment, label, or instruction.
 See the data section examples below.
@@ -199,3 +199,24 @@ JMP %0 ~print_x
 ; Exit
 HALT
 ```
+
+## Runtime
+
+A small "runtime" is available by using the directive `@runtime`. The directive
+must be on its own line.
+
+The runtime code is available [here](examples/runtime.asml). It just sets up a
+few registers with common values, sets up a stack, and return link register.
+It also provides two labels `~exit` and `~return`. `~exit` simple points to a
+HALT instruction. `~return` makes jumping to a memory location simple. It will
+take the value in register `%F`, modify a JMP instruction, and then jump to that
+location. ASML doesn't provide an instruction to jump to an address in a register
+so the code is edited at runtime with the appropriate address. This is sometimes
+referred to as a [Wheeler Jump](https://en.wikipedia.org/wiki/Goto#Wheeler_Jump)
+after David Wheeler who first developed the technique.
+
+If a program uses the runtime, the "reserved" registers MUST be used for their
+intended purposes. The runtime will fail if the "static" registers change during
+execution. The static registers include `%0` (0), `%C` (-1), and `%D` (1). Register
+`%E` is the stack pointer and must be manipulated with care. Remember, the value
+needs to be incremented by two not one to match the 16 bit addressing of memory.

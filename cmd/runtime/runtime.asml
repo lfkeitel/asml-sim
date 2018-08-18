@@ -1,0 +1,13 @@
+LOADI %C 0xFFFF
+LOADI %D 1
+LOADI %E 0xFFFC
+LOADI %F ~exit
+
+JMP %0 ~main
+
+:exit
+    HALT
+
+:return
+    STRA %F ~$+6
+    JMP %0 ~exit

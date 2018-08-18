@@ -26,7 +26,7 @@ var (
 
 func init() {
 	flag.StringVar(&outfile, "out", "stdout", "Output file")
-	flag.BoolVar(&showState, "state", false, "Disable writting state every cycle")
+	flag.BoolVar(&showState, "state", false, "Write state every cycle")
 	flag.BoolVar(&printMem, "printmem", false, "Print the initial memory layout and exit")
 	flag.BoolVar(&compile, "compile", false, "Compile file to ASML program")
 	flag.BoolVar(&printVersion, "version", false, "Print version information")

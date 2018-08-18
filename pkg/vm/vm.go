@@ -73,37 +73,37 @@ mainLoop:
 		case token.NOOP:
 			// noop
 		case token.LOADA:
-			vm.writeStateMessage("LOADA\n")
+			vm.writeStateMessage("Instr: LOADA\n")
 			vm.loadFromMem(vm.fetchByte(), vm.fetchUint16())
 		case token.LOADI:
-			vm.writeStateMessage("LOADI\n")
+			vm.writeStateMessage("Instr: LOADI\n")
 			vm.loadIntoReg(vm.fetchByte(), vm.fetchUint16())
 		case token.STRA:
-			vm.writeStateMessage("STRA\n")
+			vm.writeStateMessage("Instr: STRA\n")
 			vm.storeRegInMemory(vm.fetchByte(), vm.fetchUint16())
 		case token.MOVR:
-			vm.writeStateMessage("MOVE\n")
+			vm.writeStateMessage("Instr: MOVE\n")
 			vm.moveRegisters(vm.fetchByte(), vm.fetchByte())
 		case token.ADD:
-			vm.writeStateMessage("ADD\n")
+			vm.writeStateMessage("Instr: ADD\n")
 			vm.addCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
 		case token.OR:
-			vm.writeStateMessage("OR\n")
+			vm.writeStateMessage("Instr: OR\n")
 			vm.orRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
 		case token.AND:
-			vm.writeStateMessage("AND\n")
+			vm.writeStateMessage("Instr: AND\n")
 			vm.andRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
 		case token.XOR:
-			vm.writeStateMessage("XOR\n")
+			vm.writeStateMessage("Instr: XOR\n")
 			vm.xorRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
 		case token.ROT:
-			vm.writeStateMessage("ROTATE\n")
+			vm.writeStateMessage("Instr: ROTATE\n")
 			vm.rotateRegister(vm.fetchByte(), vm.fetchByte())
 		case token.JMP:
-			vm.writeStateMessage("JUMP\n")
+			vm.writeStateMessage("Instr: JUMP\n")
 			vm.jumpEq(vm.fetchByte(), vm.fetchUint16())
 		case token.HALT:
-			vm.writeStateMessage("HALT\n")
+			vm.writeStateMessage("Instr: HALT\n")
 			if vm.printState {
 				vm.writeString("\nPrinter: ")
 			}
@@ -111,10 +111,10 @@ mainLoop:
 			vm.writeString("\n")
 			break mainLoop
 		case token.STRR:
-			vm.writeStateMessage("STORER\n")
+			vm.writeStateMessage("Instr: STORER\n")
 			vm.storeRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
 		case token.LOADR:
-			vm.writeStateMessage("LOADR\n")
+			vm.writeStateMessage("Instr: LOADR\n")
 			vm.loadRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
 		case token.BREAK:
 			// NOOP
@@ -126,10 +126,6 @@ mainLoop:
 			vm.writePrinter()
 			vm.writeString("\n")
 			break mainLoop
-		}
-
-		if vm.printState {
-			vm.writeString("\n")
 		}
 
 		// Print character in memory address FF and reset it to 0
@@ -174,12 +170,7 @@ func (vm *VM) PrintState() {
 
 	vm.writeString("\nProgram Counter  = ")
 	vm.writeString(formatHex16(vm.pc - 1))
-
-	vm.writeString("\nNext Instruction = N/A ")
-	// vm.writeString(formatHex(vm.memory[vm.pc]))
-	// vm.writeString(" ")
-	// vm.writeString(formatHex(vm.memory[vm.pc+1]))
-	// vm.writeString(" ")
+	vm.writeString("\n\n")
 }
 
 func (vm *VM) printMemory16Bit() {

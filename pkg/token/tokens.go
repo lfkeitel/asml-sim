@@ -2,22 +2,22 @@ package token
 
 // Language opcodes
 const (
-	NOOP  byte = 0
-	LOADA byte = 1
-	LOADI byte = 2
-	STRA  byte = 3
-	MOVR  byte = 4
-	ADD   byte = 5
-	FLAGS byte = 6
-	OR    byte = 7
-	AND   byte = 8
-	XOR   byte = 9
-	ROT   byte = 10
-	JMP   byte = 11
-	HALT  byte = 12
-	STRR  byte = 13
-	LOADR byte = 14
-	BREAK byte = 15
+	NOOP  byte = 0x0
+	LOADA byte = 0x1
+	LOADI byte = 0x2
+	STRA  byte = 0x3
+	MOVR  byte = 0x4
+	ADD   byte = 0x5
+	FLAGS byte = 0x6
+	OR    byte = 0x7
+	AND   byte = 0x8
+	XOR   byte = 0x9
+	ROT   byte = 0xA
+	JMP   byte = 0xB
+	HALT  byte = 0xC
+	STRR  byte = 0xD
+	LOADR byte = 0xE
+	BREAK byte = 0xF
 )
 
 var Opcodes = map[string]byte{

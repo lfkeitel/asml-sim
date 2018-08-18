@@ -1,9 +1,9 @@
 ; Print "Hello" using a print function
 
-; This example uses the convential ASML runtime. See runtime.asml for the implementation. The runtime takes 16 bytes.
+; This example uses the conventional ASML runtime. See runtime.asml for the implementation. The runtime takes 16 bytes.
 
 ; Import runtime code
-; Available lables:
+; Available labels:
 ;   ~exit
 ;   ~return
 @runtime

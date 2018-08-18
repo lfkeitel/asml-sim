@@ -1,0 +1,45 @@
+; Print "Hello" using a print function
+
+; Same as other version but less fancy
+
+; Import runtime code
+; Available labels:
+;   ~exit
+;   ~return
+@runtime
+
+:main
+    ; Print H
+    LOADI %1 'H'
+    ; Set return address to instruction past the JMP
+    LOADI %F ~$+8
+    JMP %0 ~print
+
+    ; Print e
+    LOADI %1 'e'
+    LOADI %F ~$+8
+    JMP %0 ~print
+
+    ; Print ll
+    LOADI %1 'l'
+    LOADI %F ~$+8
+    JMP %0 ~print
+
+    LOADI %1 'l'
+    LOADI %F ~$+8
+    JMP %0 ~print
+
+    ; Print o
+    LOADI %1 'o'
+    ; Here we exit the program by setting it as the next return address
+    LOADI %F ~exit
+    JMP %0 ~print
+
+; Subroutines
+
+; Print the argument in R1
+:print
+    ; Print arg 1
+    STRA %1 0xFFFE
+    ; Return
+    JMP %0 ~return

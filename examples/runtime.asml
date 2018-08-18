@@ -26,6 +26,7 @@
 
 ; BEGIN - Runtime - 16 bytes
 ; Setup registers
+;LOADI %0 0 ; All registers are initialized to 0 so no need to actually exec this instruction.
 LOADI %C 0xFFFF
 LOADI %D 1
 LOADI %E 0xFFFC

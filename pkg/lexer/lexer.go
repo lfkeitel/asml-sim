@@ -23,7 +23,7 @@ const (
 	lowerBits  bitParts = 2
 )
 
-type labelReplace struct {
+type LabelReplace struct {
 	l      string
 	offset uint16
 	part   bitParts
@@ -32,7 +32,7 @@ type labelReplace struct {
 type Lexer struct {
 	in              io.ReadSeeker
 	labels          map[string]uint16       // Label definitions
-	labelPlaces     map[uint16]labelReplace // Memory locations that need labels
+	labelPlaces     map[uint16]LabelReplace // Memory locations that need labels
 	currMemLocation uint16
 	linenum         int
 }
@@ -43,7 +43,7 @@ func New(in io.ReadSeeker) *Lexer {
 	}
 }
 
-func (l *Lexer) Lex() []uint8 {
+func (l *Lexer) checkBinaryFile() []byte {
 	// Read in a compiled ASML file
 	header := make([]byte, 4)
 	n, err := l.in.Read(header)
@@ -61,16 +61,56 @@ func (l *Lexer) Lex() []uint8 {
 		io.Copy(&buf, l.in)
 		return buf.Bytes()
 	}
+	return nil
+}
+
+func (l *Lexer) Lex() []uint8 {
+	bin := l.checkBinaryFile()
+	if bin != nil {
+		return bin
+	}
 
 	// Rewind file to read in as source
 	l.in.Seek(0, 0)
 	reader := bufio.NewReader(l.in)
+	code := l.readCode(reader)
+	l.linkCode(code)
+
+	directives := &token.Flags{}
+	return append(directives.Bytes(), code...)
+}
+
+type LabelMap map[string]uint16
+type LabelLinkMap map[uint16]LabelReplace
+
+func (m LabelLinkMap) FindOffsets(label string) []uint16 {
+	links := make([]uint16, 0, 5)
+	for l, lr := range m {
+		if lr.l == label {
+			links = append(links, l)
+		}
+	}
+	return links
+}
+
+func (l *Lexer) LexNoLink() ([]uint8, LabelMap, LabelLinkMap) {
+	bin := l.checkBinaryFile()
+	if bin != nil {
+		return bin, nil, nil
+	}
+
+	// Rewind file to read in as source
+	l.in.Seek(0, 0)
+	reader := bufio.NewReader(l.in)
+	return l.readCode(reader), l.labels, l.labelPlaces
+}
+
+func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 	var code []uint8
 	l.linenum = 0
-	l.labels = make(map[string]uint16)            // Label definitions
-	l.labelPlaces = make(map[uint16]labelReplace) // Memory locations that need labels
+	l.labels = make(LabelMap)          // Label definitions
+	l.labelPlaces = make(LabelLinkMap) // Memory locations that need labels
 	l.currMemLocation = 0
-	directives := &token.Flags{}
 
 	for {
 		line, _, err := reader.ReadLine()
@@ -114,7 +154,7 @@ func (l *Lexer) Lex() []uint8 {
 					l.labels[n] = o
 				}
 				l.currMemLocation += uint16(len(code))
-				l.labelPlaces[mainLabelLoc] = labelReplace{
+				l.labelPlaces[mainLabelLoc] = LabelReplace{
 					l: "main",
 				}
 			}
@@ -162,7 +202,10 @@ func (l *Lexer) Lex() []uint8 {
 		}
 	}
 
-	// Replace labels
+	return code
+}
+
+func (l *Lexer) linkCode(code []uint8) {
 	for loc, label := range l.labelPlaces {
 		memloc, exists := l.labels[label.l]
 		if !exists {
@@ -182,8 +225,6 @@ func (l *Lexer) Lex() []uint8 {
 			code[loc+1] = uint8(memloc) + uint8(label.offset)
 		}
 	}
-
-	return append(directives.Bytes(), code...)
 }
 
 func (l *Lexer) oneRegOneDigit(instruction [][]byte) (uint8, uint8) {
@@ -326,7 +367,7 @@ func (l *Lexer) oneRegTwoByte(instruction [][]byte) (uint8, uint16) {
 		if label[0] == '$' {
 			digit = uint64(l.currMemLocation + offset)
 		} else {
-			l.labelPlaces[l.currMemLocation+2] = labelReplace{
+			l.labelPlaces[l.currMemLocation+2] = LabelReplace{
 				l:      string(label),
 				offset: offset,
 				part:   bits,
