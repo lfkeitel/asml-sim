@@ -1,13 +1,10 @@
 ; **The Runtime**
 
 ; Reserved registers:
-;   Register 0 = constant 0 - Used for unconditional jumps
-;   Register 4 = constant 1 - Used to manipulate stack pointer
-;   Register 5 = constant -1 - Used to manipulate stack pointer
 ;   Register C = stack pointer - Points to next available stack address
 ;   Register D = link register - Address to return when called functions finishes
 
-; The runtime code below sets up registers 0, 4-5, and C-D and makes available an 'exit' and 'return' label. 'exit'
+; The runtime code below sets up registers C and D and makes available an 'exit' and 'return' label. 'exit'
 ; does what you'd expect. It's meant to be used a jump target or return address when using the link register.
 ; 'return' will take the value in register D and jump to that address to resume code execution.
 ; The label "main" is called to begin user code.
@@ -25,17 +22,14 @@
 ; The exit labels are not resolved at link time since both the jump instruction and its definition are
 ; part of the same code. The main label is resolved at link time so it can be anywhere in the code.
 
-; BEGIN - Runtime - 16 bytes
+; BEGIN - Runtime
 ; Setup registers
-LOADI %0 0
-LOADI %4 1
-LOADI %5 0xFFFF
 LOADI %C 0xFFFE
 LOADI %D ~exit
 
 ; Run main function
 ; The "main" label is resolved at link time.
-JMP %0 ~main
+JMPA ~main
 
 :exit
     HALT
@@ -43,10 +37,10 @@ JMP %0 ~main
 ; return will jump to the address in register F
 :return
     ; Edit jump address in next instruction to the location in register D
-    STRA %D ~$+6
-    JMP %0 ~exit
+    STRA %D ~$+5
+    JMPA ~exit
 ; END - Runtime
 
 ; Main is normally provided by user code, but is here so this script doesn't run infinitely
 :main
-    JMP %0 ~exit
+    JMPA ~exit

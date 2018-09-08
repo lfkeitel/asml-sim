@@ -1,14 +1,11 @@
-LOADI %0 0
-LOADI %4 1
-LOADI %5 0xFFFF
 LOADI %C 0xFFFE
 LOADI %D ~exit
 
-JMP %0 ~main
+JMPA ~main
 
 :exit
     HALT
 
 :return
-    STRA %D ~$+6
-    JMP %0 ~exit
+    STRA %D ~$+5
+    JMPA ~exit

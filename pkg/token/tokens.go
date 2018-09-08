@@ -8,7 +8,7 @@ const (
 	STRA  byte = 0x3
 	MOVR  byte = 0x4
 	ADD   byte = 0x5
-	FLAGS byte = 0x6
+	ADDI  byte = 0x6
 	OR    byte = 0x7
 	AND   byte = 0x8
 	XOR   byte = 0x9
@@ -17,7 +17,7 @@ const (
 	HALT  byte = 0xC
 	STRR  byte = 0xD
 	LOADR byte = 0xE
-	BREAK byte = 0xF
+	JMPA  byte = 0xF
 )
 
 var Opcodes = map[string]byte{
@@ -27,7 +27,7 @@ var Opcodes = map[string]byte{
 	"STRA":  STRA,
 	"MOVR":  MOVR,
 	"ADD":   ADD,
-	"ADDF":  FLAGS,
+	"ADDI":  ADDI,
 	"OR":    OR,
 	"AND":   AND,
 	"XOR":   XOR,
@@ -36,5 +36,5 @@ var Opcodes = map[string]byte{
 	"HALT":  HALT,
 	"STRR":  STRR,
 	"LOADR": LOADR,
-	"BREAK": BREAK,
+	"JMPA":  JMPA,
 }

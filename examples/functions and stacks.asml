@@ -11,50 +11,50 @@
 :main
     ; Print H
     LOADI %1 'H'
-    LOADI %D ~$+8
-    JMP %0 ~print
+    LOADI %D ~$+7
+    JMPA ~print
     ; Print e
     LOADI %1 'e'
-    LOADI %D ~$+8
-    JMP %0 ~print
+    LOADI %D ~$+7
+    JMPA ~print
     ; Print ll
     LOADI %1 'l'
-    LOADI %D ~$+8
-    JMP %0 ~print
+    LOADI %D ~$+7
+    JMPA ~print
     LOADI %1 'l'
-    LOADI %D ~$+8
-    JMP %0 ~print
+    LOADI %D ~$+7
+    JMPA ~print
     ; Print o
     LOADI %1 'o'
     LOADI %D ~exit
-    JMP %0 ~print
+    JMPA ~print
 
 ; Subroutines
 
 ; Print the argument in R1
 :print
     ; Increment stack pointer to hold 2 byte address
-    ADD %C %C %5
+    ADDI %C %C -1
     ; Push return address to stack
     STRR %C %D
     ; Increment stack pointer for next byte
-    ADD %C %C %5
+    ADDI %C %C -1
 
     ; Print arg 1
     STRA %1 0xFFFF
 
     ; Call another function for demo
     LOADI %D ~print_return
-    JMP %0 ~increment_F0
+    JMPA ~increment_F0
     ; Pop return address from stack
     ; Decrement stack pointer by two
 :print_return
-    ADD %C %C %4
+    ADDI %C %C 1
     LOADR %D %C
-    ADD %C %C %4
+    ADDI %C %C 1
 
     ; Return
-    JMP %0 ~return
+    JMPA ~return
 
 ; increment_F0 is used to demonstrate a function call from a called function
 ; basically to show how the stack is used to save old link addresses and restored
@@ -64,4 +64,4 @@
     LOADA %1 F0
     ADD %1 %1 %4
     STRA %1 F0
-    JMP %0 ~return
+    JMPA ~return

@@ -140,21 +140,22 @@ number. In general, if a destination register is needed, it will be the first op
 
 | Name    | Opcode | Arg1 | Arg2 | Arg3 |
 |---------+--------+------+------+------+
-| NOOP    |   0    |      |      |      |
-| LOADA   |   1    |  %D  |  H   |  L   |
-| LOADI   |   2    |  %D  |  H   |  L   |
-| STRA    |   3    |  %S  |  H   |  L   |
-| MOVR    |   4    |  %D  |  %S  |      |
-| ADD     |   5    |  %D  |  %S1 |  %S2 |
-| FLAGS   |   6-   |      |      |      |
-| OR      |   7    |  %D  |  %S1 |  %S2 |
-| AND     |   8    |  %D  |  %S1 |  %S2 |
-| XOR     |   9    |  %D  |  %S1 |  %S2 |
-| ROT     |   A    |  %D  |  /B  |      |
-| JMP     |   B    |  %S  |  H   |  L   |
-| HALT    |   C    |      |      |      |
-| STRR    |   D    |  %S  |  %D  |      |
-| LOADR   |   E    |  %D  |  %s  |      |
+| NOOP    |  0x00  |      |      |      |
+| LOADA   |  0x01  |  %D  |  H   |  L   |
+| LOADI   |  0x02  |  %D  |  H   |  L   |
+| STRA    |  0x03  |  %S  |  H   |  L   |
+| MOVR    |  0x04  |  %D  |  %S  |      |
+| ADD     |  0x05  |  %D  |  %S1 |  %S2 |
+| ADDI    |  0x06  |  %D  |  %S  |  B   |
+| OR      |  0x07  |  %D  |  %S1 |  %S2 |
+| AND     |  0x08  |  %D  |  %S1 |  %S2 |
+| XOR     |  0x09  |  %D  |  %S1 |  %S2 |
+| ROT     |  0x0A  |  %D  |  /B  |      |
+| JMP     |  0x0B  |  %S  |  H   |  L   |
+| HALT    |  0x0C  |      |      |      |
+| STRR    |  0x0D  |  %S  |  %D  |      |
+| LOADR   |  0x0E  |  %D  |  %S  |      |
+| JMPA    |  0x0F  |  H   |  L   |      |
 
 Each opcode is one byte. Each arg is one byte.
 
@@ -178,7 +179,7 @@ B/B two half byte values
 | STRA     | Store the value of register R into memory address XY.                                                                                       |
 | MOVR     | Move the value of register S into register R.                                                                                               |
 | ADD      | Add the values in registers S and T using 2's compliment. The result will be stored in register R.                                          |
-|          | Used internally by compiler.                                                                                                                |
+| ADDI     | Add the immediate value B to register S and store the result in register D.                                                                 |
 | OR       | OR the values of registers S and T and store the value in register R.                                                                       |
 | AND      | AND the values of registers S and T and store the value in register R.                                                                      |
 | XOR      | XOR the values of registers S and T and store the value in register R.                                                                      |
@@ -187,7 +188,7 @@ B/B two half byte values
 | HALT     | Halt execution.                                                                                                                             |
 | STRR     | Store the value of register S into the memory address stored in register R.                                                                 |
 | LOADR    | Load the value at the memory address stored in register S to register R.                                                                    |
-|          | Not implemented.                                                                                                                            |
+| JMPA     | Jump unconditionally to address.                                                                                                            |
 
 ## Example
 
@@ -214,7 +215,7 @@ ADD %1 %1 %2
 JMP %1 ~end
 
 ; Unconditional jump to print X
-JMP %0 ~print_x
+JMPA ~print_x
 
 :end
 ; Exit

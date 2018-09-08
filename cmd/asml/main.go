@@ -108,7 +108,7 @@ func loadCode(infile string) []uint8 {
 
 func printVersionInfo() {
 	fmt.Printf(`ASML Virtual Machine - (C) 2018 Lee Keitel
-Architecture: 16-bit
+Architecture: 8-bit registers, 16-bit addresses
 Version:      %s
 Built:        %s
 Compiled by:  %s

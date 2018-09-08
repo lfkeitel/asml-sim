@@ -76,8 +76,7 @@ func (l *Lexer) Lex() []uint8 {
 	code := l.readCode(reader)
 	l.linkCode(code)
 
-	directives := &token.Flags{}
-	return append(directives.Bytes(), code...)
+	return code
 }
 
 type LabelMap map[string]uint16
@@ -177,7 +176,7 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 		}
 
 		switch opcode {
-		case token.HALT, token.NOOP, token.BREAK:
+		case token.HALT, token.NOOP:
 			code = append(code, opcode)
 			l.currMemLocation++
 		case token.ROT:
@@ -188,7 +187,7 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 			reg1, reg2 := l.twoRegisters(instruction[1:])
 			code = append(code, opcode, reg1, reg2)
 			l.currMemLocation += 3
-		case token.ADD, token.FLAGS, token.OR, token.AND, token.XOR:
+		case token.ADD, token.OR, token.AND, token.XOR:
 			reg1, reg2, reg3 := l.threeRegisters(instruction[1:])
 			code = append(code, opcode, reg1, reg2, reg3)
 			l.currMemLocation += 4
@@ -196,6 +195,14 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 			reg, b := l.oneRegTwoByte(instruction[1:])
 			code = append(code, opcode, reg, uint8(b>>8), uint8(b))
 			l.currMemLocation += 4
+		case token.ADDI:
+			reg1, reg2, b := l.twoRegOneByte(instruction[1:])
+			code = append(code, opcode, reg1, reg2, b)
+			l.currMemLocation += 4
+		case token.JMPA:
+			b := l.twoByte(instruction[1:])
+			code = append(code, opcode, uint8(b>>8), uint8(b))
+			l.currMemLocation += 3
 		default:
 			fmt.Printf("Invalid opcode on line %d\n", l.linenum)
 			os.Exit(1)
@@ -382,4 +389,97 @@ func (l *Lexer) oneRegTwoByte(instruction [][]byte) (uint8, uint16) {
 		}
 	}
 	return uint8(reg), uint16(digit)
+}
+
+func (l *Lexer) twoRegOneByte(instruction [][]byte) (uint8, uint8, uint8) {
+	if len(instruction) < 3 {
+		return 0, 0, 0
+	}
+
+	if instruction[0][0] != '%' || instruction[1][0] != '%' {
+		return 0, 0, 0
+	}
+
+	reg1, err := strconv.ParseUint(string(instruction[0][1:]), 16, 8)
+	if err != nil {
+		return 0, 0, 0
+	}
+	if reg1 > 15 {
+		reg1 = 0
+	}
+
+	reg2, err := strconv.ParseUint(string(instruction[1][1:]), 16, 8)
+	if err != nil {
+		return 0, 0, 0
+	}
+	if reg2 > 15 {
+		reg2 = 0
+	}
+
+	var b uint8
+	if instruction[2][0] == '-' {
+		digit, _ := strconv.ParseInt(string(instruction[2]), 0, 8)
+		b = uint8(digit)
+	} else {
+		digit, _ := strconv.ParseUint(string(instruction[2]), 0, 8)
+		b = uint8(digit)
+	}
+	return uint8(reg1), uint8(reg2), b
+}
+
+func (l *Lexer) twoByte(instruction [][]byte) uint16 {
+	if len(instruction) < 1 {
+		return 0
+	}
+
+	var digit uint64
+	var err error
+	if instruction[0][0] == '~' { // Label
+		bits := fullBits
+		label := instruction[0][1:]
+		if label[0] == '^' {
+			bits = higherBits
+			label = label[1:]
+		} else if label[0] == '`' {
+			bits = lowerBits
+			label = label[1:]
+		}
+
+		var offset uint16
+		addIndex := bytes.Index(instruction[0], []byte{'+'})
+		subIndex := bytes.Index(instruction[0], []byte{'-'})
+		if addIndex > 0 || subIndex > 0 {
+			ind := addIndex
+			if subIndex > 0 {
+				ind = subIndex
+			}
+			label = instruction[0][1:ind]
+			offset64, err := strconv.ParseInt(string(instruction[0][ind+1:]), 0, 16)
+			if err != nil {
+				fmt.Printf("Invalid offset on line %d\n", l.linenum)
+				os.Exit(1)
+			}
+			offset = uint16(offset64)
+			if subIndex > 0 {
+				offset = -offset
+			}
+		}
+		if label[0] == '$' {
+			digit = uint64(l.currMemLocation + offset)
+		} else {
+			l.labelPlaces[l.currMemLocation+1] = LabelReplace{
+				l:      string(label),
+				offset: offset,
+				part:   bits,
+			}
+		}
+	} else if instruction[0][0] == '\'' { // Literal byte character
+		digit = uint64(instruction[0][1])
+	} else {
+		digit, err = strconv.ParseUint(string(instruction[0]), 0, 16)
+		if err != nil {
+			return 0
+		}
+	}
+	return uint16(digit)
 }

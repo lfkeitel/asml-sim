@@ -58,18 +58,12 @@ type VM struct {
 	output     bytes.Buffer
 	printer    bytes.Buffer
 	printState bool
-	flags      *token.Flags
 }
 
 func New(code []uint8, printState bool) *VM {
 	if len(code) < 2 {
 		fmt.Println("No code given")
 		os.Exit(1)
-	}
-
-	flags, valid := token.FlagsFromBytes([]byte{code[0], code[1]})
-	if valid {
-		code = code[2:]
 	}
 
 	if len(code) > numOfMemoryCells-1 { // Reserve printer cell
@@ -82,7 +76,6 @@ func New(code []uint8, printState bool) *VM {
 		memory:     make([]uint8, numOfMemoryCells),
 		pc:         0,
 		printState: printState,
-		flags:      flags,
 	}
 
 	for i, c := range code {
@@ -126,6 +119,9 @@ mainLoop:
 		case token.ADD:
 			vm.writeStateMessage("Instr: ADD\n")
 			vm.addCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
+		case token.ADDI:
+			vm.writeStateMessage("Instr: ADDI\n")
+			vm.addImmCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
 		case token.OR:
 			vm.writeStateMessage("Instr: OR\n")
 			vm.orRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
@@ -155,8 +151,9 @@ mainLoop:
 		case token.LOADR:
 			vm.writeStateMessage("Instr: LOADR\n")
 			vm.loadRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
-		case token.BREAK:
-			// NOOP
+		case token.JMPA:
+			vm.writeStateMessage("Instr: JUMPA\n")
+			vm.jumpAbs(vm.fetchUint16())
 		default:
 			vm.writeString("INVALID OPCODE\n")
 			if vm.printState {
@@ -421,6 +418,12 @@ func (vm *VM) addCompliment(r, s, t uint8) {
 	vm.writeAnyReg(r, uint32(int32(sv)+int32(tv)))
 }
 
+func (vm *VM) addImmCompliment(r, s, x uint8) {
+	sv := vm.readAnyReg2Comp(s)
+	// converting to int8 then int32 preserves the signed value of uint8
+	vm.writeAnyReg(r, uint32(int32(sv)+int32(int8(x))))
+}
+
 func (vm *VM) orRegisters(r, s, t uint8) {
 	sv := vm.readAnyReg(s)
 	tv := vm.readAnyReg(t)
@@ -464,4 +467,8 @@ func (vm *VM) storeRegInMemoryAddr(d, s uint8) {
 func (vm *VM) loadRegInMemoryAddr(d, s uint8) {
 	addr := uint16(vm.readAnyReg(s))
 	vm.loadFromMem(d, addr)
+}
+
+func (vm *VM) jumpAbs(d uint16) {
+	vm.pc = d
 }
