@@ -12,27 +12,27 @@
     ; Print H
     LOADI %1 'H'
     ; Set return address to instruction past the JMP
-    LOADI %F ~$+8
+    LOADI %D ~$+8
     JMP %0 ~print
 
     ; Print e
     LOADI %1 'e'
-    LOADI %F ~$+8
+    LOADI %D ~$+8
     JMP %0 ~print
 
     ; Print ll
     LOADI %1 'l'
-    LOADI %F ~$+8
+    LOADI %D ~$+8
     JMP %0 ~print
 
     LOADI %1 'l'
-    LOADI %F ~$+8
+    LOADI %D ~$+8
     JMP %0 ~print
 
     ; Print o
     LOADI %1 'o'
     ; Here we exit the program by setting it as the next return address
-    LOADI %F ~exit
+    LOADI %D ~exit
     JMP %0 ~print
 
 ; Subroutines
@@ -40,6 +40,6 @@
 ; Print the argument in R1
 :print
     ; Print arg 1
-    STRA %1 0xFFFE
+    STRA %1 0xFFFF
     ; Return
     JMP %0 ~return

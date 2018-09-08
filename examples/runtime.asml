@@ -2,13 +2,14 @@
 
 ; Reserved registers:
 ;   Register 0 = constant 0 - Used for unconditional jumps
-;   Register C = constant -1 - Used to manipulate stack pointer
-;   Register D = constant 1 - Used to manipulate stack pointer
-;   Register E = stack pointer - Points to next available stack address
-;   Register F = link register - Address to return when called functions finishes
+;   Register 4 = constant 1 - Used to manipulate stack pointer
+;   Register 5 = constant -1 - Used to manipulate stack pointer
+;   Register C = stack pointer - Points to next available stack address
+;   Register D = link register - Address to return when called functions finishes
 
-; The runtime code below sets up registers C through F and makes available an 'exit' and 'return' label. 'exit'
-; does what you'd expect. 'return' will take the value in register F and jump to that address to resume code execution.
+; The runtime code below sets up registers 0, 4-5, and C-D and makes available an 'exit' and 'return' label. 'exit'
+; does what you'd expect. It's meant to be used a jump target or return address when using the link register.
+; 'return' will take the value in register D and jump to that address to resume code execution.
 ; The label "main" is called to begin user code.
 
 ; Functions are implemented by using what's known as a Wheeler jump. Basically, we edit the running
@@ -17,7 +18,7 @@
 ; A stack is used to store link addresses when a subroutine has to call another subroutine. The original
 ; subroutine will then pop the stack and restore the original link address before returning.
 
-; The stack begins at memory address 0xFFFC (0xFFFE-0xFFFF is the print address so can't be used) and grows down.
+; The stack begins at memory address 0xFFFE (0xFFFF is the print address so can't be used) and grows down.
 ; There is no mechanism to check for an "out-of-bounds" stack. It's fully possible for the stack to overrun existing
 ; memory if care is not taken.
 
@@ -26,11 +27,11 @@
 
 ; BEGIN - Runtime - 16 bytes
 ; Setup registers
-;LOADI %0 0 ; All registers are initialized to 0 so no need to actually exec this instruction.
-LOADI %C 0xFFFF
-LOADI %D 1
-LOADI %E 0xFFFC
-LOADI %F ~exit
+LOADI %0 0
+LOADI %4 1
+LOADI %5 0xFFFF
+LOADI %C 0xFFFE
+LOADI %D ~exit
 
 ; Run main function
 ; The "main" label is resolved at link time.
@@ -41,8 +42,8 @@ JMP %0 ~main
 
 ; return will jump to the address in register F
 :return
-    ; Edit jump address in next instruction to the location in register F
-    STRA %F ~$+6
+    ; Edit jump address in next instruction to the location in register D
+    STRA %D ~$+6
     JMP %0 ~exit
 ; END - Runtime
 

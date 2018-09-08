@@ -1,7 +1,8 @@
-LOADI %C 0xFFFF
-LOADI %D 1
-LOADI %E 0xFFFC
-LOADI %F ~exit
+LOADI %0 0
+LOADI %4 1
+LOADI %5 0xFFFF
+LOADI %C 0xFFFE
+LOADI %D ~exit
 
 JMP %0 ~main
 
@@ -9,5 +10,5 @@ JMP %0 ~main
     HALT
 
 :return
-    STRA %F ~$+6
+    STRA %D ~$+6
     JMP %0 ~exit
