@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/lfkeitel/asml-sim/pkg/lexer"
+	"github.com/lfkeitel/asml-sim/pkg/linker"
+	"github.com/lfkeitel/asml-sim/pkg/parser"
 	"github.com/lfkeitel/asml-sim/pkg/vm"
 )
 
@@ -48,6 +51,10 @@ func main() {
 	infile := flag.Arg(0)
 	code := loadCode(infile)
 
+	if code == nil {
+		os.Exit(1)
+	}
+
 	if compile {
 		writeCompiledCode(code)
 		return
@@ -88,8 +95,46 @@ func loadCode(infile string) []uint8 {
 	}
 	defer file.Close()
 
+	if code := checkBinaryFile(file); code != nil {
+		return code
+	}
+	file.Seek(0, 0)
+
 	lex := lexer.New(file)
-	return lex.Lex()
+	p := parser.New(lex)
+	program, err := p.Parse()
+	if err != nil {
+		fmt.Printf("Parsing failed: %q\n", err)
+		return nil
+	}
+
+	if err := linker.Link(program); err != nil {
+		fmt.Printf("Linking failed: %q\n", err)
+		return nil
+	}
+
+	return program.Code
+}
+
+func checkBinaryFile(file *os.File) []uint8 {
+	// Read in a compiled ASML file
+	header := make([]byte, 4)
+	n, err := file.Read(header)
+	if err != nil {
+		fmt.Printf("Error reading file header: %s\n", err)
+		os.Exit(1)
+	}
+	if n < 4 {
+		fmt.Println("Invalid file")
+		os.Exit(1)
+	}
+
+	if bytes.Equal(header, lexer.ASMLHeader) {
+		var buf bytes.Buffer
+		io.Copy(&buf, file)
+		return buf.Bytes()
+	}
+	return nil
 }
 
 func printVersionInfo() {

@@ -64,12 +64,12 @@ HALT
 '%' denotes a register. (%0 - %D)
 
 Literals have various forms depending on the base. The prefix '0x' denotes a hexadecimal number, the prefix
-'0' is an octal number, anything else is assumed to be a decimal number. Literals are parsed as unsigned values.
-To make negative numbers, use the two's compliment of the value in hex.
+'0' is an octal number, the prefix '!' is a binary number, anything else is assumed to be a decimal number.
+Literals are parsed as unsigned values. To make negative numbers, use the two's compliment of the value in hex.
 
-Single bytes can be used by enclosing them in single quotes. (`'H'`)
-
-Strings can be used on a line by themselves by enclosing a string in double quotes. The containing bytes
+Strings can be used either on their own line or in place of an immediate value. When used as an immediate value,
+the length of the string must fit in the destination register or operation. For example, loading register 1 with
+a string must have a length of 1. Strings are created by enclosing text in double quotes. The containing bytes
 are inserted as is and interpreted as raw data.
 
 Raw bytes can be used when the line doesn't start with a comment, label, or instruction.
@@ -96,11 +96,11 @@ Labels are defined on their own line starting with a colon:
 13 45 0x45 0644
 ```
 
-Labels can be used anywhere a 1 or 2 byte argument would be used. The syntax is `~labelName`:
+Labels can be used anywhere a 1 or 2 byte argument would be used:
 
 ```
 ; Load the value in memory location 'data' (13) to register 1
-LOADA %1 ~data
+LOADA %1 data
 
 :data
 13 42
@@ -110,21 +110,13 @@ Labels can also have simple math applied:
 
 ```
 ; Load the value in memory location 'data+1' (42) to register 1
-LOADA %1 ~data+1
+LOADA %1 data+1
 
 :data
 13 42
 ```
 
-The first and second byte of a two byte address can be retrieved using a special syntax.
-
-To get the first byte: `~^label`
-
-To get the second byte: <code>~\`label</code>
-
-To get the full addresss: `~label`
-
-The special label `~$` references the address of the current instruction. Offsets may be used as normal.
+The special label `$` references the address of the current instruction. Offsets may be used as normal.
 
 NOTE: If a label address is loaded into a single-width register, only the lower byte of the address
 is stored. The higher byte is assumed to be 0x00.
@@ -145,7 +137,7 @@ The following example prints the character 'X' to the printer 3 times using a lo
     LOADI %2 0xFF
 
     ; Register 3 - char X
-    LOADI %3 'X'
+    LOADI %3 "X"
 
 :print_x
     ; Print X
@@ -155,10 +147,10 @@ The following example prints the character 'X' to the printer 3 times using a lo
     ADD %1 %1 %2
 
     ; Check if loop counter is 0
-    JMP %1 ~end
+    JMP %1 end
 
     ; Unconditional jump to print X
-    JMPA ~print_x
+    JMPA print_x
 
 :end
     ; Exit

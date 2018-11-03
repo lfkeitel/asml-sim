@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/lfkeitel/asml-sim/pkg/token"
+	"github.com/lfkeitel/asml-sim/pkg/opcodes"
 )
 
 const (
@@ -71,42 +71,42 @@ mainLoop:
 		}
 
 		switch opcode {
-		case token.NOOP:
+		case opcodes.NOOP:
 			// noop
-		case token.LOADA:
+		case opcodes.LOADA:
 			vm.writeStateMessage("Instr: LOADA\n")
 			vm.loadFromMem(vm.fetchByte(), vm.fetchUint16())
-		case token.LOADI:
+		case opcodes.LOADI:
 			vm.writeStateMessage("Instr: LOADI\n")
 			vm.loadIntoReg(vm.fetchByte(), vm.fetchUint16())
-		case token.STRA:
+		case opcodes.STRA:
 			vm.writeStateMessage("Instr: STRA\n")
 			vm.storeRegInMemory(vm.fetchByte(), vm.fetchUint16())
-		case token.MOVR:
+		case opcodes.MOVR:
 			vm.writeStateMessage("Instr: MOVE\n")
 			vm.moveRegisters(vm.fetchByte(), vm.fetchByte())
-		case token.ADD:
+		case opcodes.ADD:
 			vm.writeStateMessage("Instr: ADD\n")
 			vm.addCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
-		case token.ADDI:
+		case opcodes.ADDI:
 			vm.writeStateMessage("Instr: ADDI\n")
 			vm.addImmCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
-		case token.OR:
+		case opcodes.OR:
 			vm.writeStateMessage("Instr: OR\n")
 			vm.orRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
-		case token.AND:
+		case opcodes.AND:
 			vm.writeStateMessage("Instr: AND\n")
 			vm.andRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
-		case token.XOR:
+		case opcodes.XOR:
 			vm.writeStateMessage("Instr: XOR\n")
 			vm.xorRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
-		case token.ROT:
+		case opcodes.ROT:
 			vm.writeStateMessage("Instr: ROTATE\n")
 			vm.rotateRegister(vm.fetchByte(), vm.fetchByte())
-		case token.JMP:
+		case opcodes.JMP:
 			vm.writeStateMessage("Instr: JUMP\n")
 			vm.jumpEq(vm.fetchByte(), vm.fetchUint16())
-		case token.HALT:
+		case opcodes.HALT:
 			vm.writeStateMessage("Instr: HALT\n")
 			if vm.printState {
 				vm.writeString("\nPrinter: ")
@@ -114,34 +114,34 @@ mainLoop:
 			vm.writePrinter()
 			vm.writeString("\n")
 			break mainLoop
-		case token.STRR:
+		case opcodes.STRR:
 			vm.writeStateMessage("Instr: STORER\n")
 			vm.storeRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
-		case token.LOADR:
+		case opcodes.LOADR:
 			vm.writeStateMessage("Instr: LOADR\n")
 			vm.loadRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
-		case token.JMPA:
+		case opcodes.JMPA:
 			vm.writeStateMessage("Instr: JUMPA\n")
 			vm.jumpAbs(vm.fetchUint16())
-		case token.LDSP:
+		case opcodes.LDSP:
 			vm.writeStateMessage("Instr: LDSP\n")
 			vm.loadSP(vm.fetchUint16())
-		case token.LDSPI:
+		case opcodes.LDSPI:
 			vm.writeStateMessage("Instr: LDSPI\n")
 			vm.loadSPImm(vm.fetchUint16())
-		case token.PUSH:
+		case opcodes.PUSH:
 			vm.writeStateMessage("Instr: PUSH\n")
 			vm.push(vm.fetchByte())
-		case token.POP:
+		case opcodes.POP:
 			vm.writeStateMessage("Instr: POP\n")
 			vm.pop(vm.fetchByte())
-		case token.CALL:
+		case opcodes.CALL:
 			vm.writeStateMessage("Instr: CALL\n")
 			vm.call(vm.fetchUint16())
-		case token.CALLR:
+		case opcodes.CALLR:
 			vm.writeStateMessage("Instr: CALLR\n")
 			vm.callr(vm.fetchByte())
-		case token.RTN:
+		case opcodes.RTN:
 			vm.writeStateMessage("Instr: RTN\n")
 			vm.rtn()
 		default:

@@ -1,16 +1,16 @@
-LOADI %1 'H'
+LOADI %1 "H"
 STRA %1 0xFFFF
 
-LOADI %1 'e'
+LOADI %1 "e"
 STRA %1 0xFFFF
 
-LOADI %1 'l'
+LOADI %1 "l"
 STRA %1 0xFFFF
 
-LOADI %1 'l'
+LOADI %1 "l"
 STRA %1 0xFFFF
 
-LOADI %1 'o'
+LOADI %1 "o"
 STRA %1 0xFFFF
 
 HALT

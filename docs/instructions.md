@@ -19,7 +19,7 @@ number. In general, if a destination register is needed, it will be the first op
 | OR      |  0x07  |  %D  |  %S1 |  %S2 |
 | AND     |  0x08  |  %D  |  %S1 |  %S2 |
 | XOR     |  0x09  |  %D  |  %S1 |  %S2 |
-| ROT     |  0x0A  |  %D  |  /B  |      |
+| ROT     |  0x0A  |  %D  |  B   |      |
 | JMP     |  0x0B  |  %S  |  H   |  L   |
 | HALT    |  0x0C  |      |      |      |
 | STRR    |  0x0D  |  %S  |  %D  |      |
@@ -41,9 +41,6 @@ Each opcode is one byte. Each arg is one byte.
 H higher byte of 2-byte value
 L lower byte of 2-byte value
 B one byte value
-B/ half byte high
-/B half byte low
-B/B two half byte values
 
 ## Descriptions
 
