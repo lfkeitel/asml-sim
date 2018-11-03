@@ -49,21 +49,7 @@ func main() {
 	code := loadCode(infile)
 
 	if compile {
-		var out io.WriteCloser
-		if outfile == "stdout" {
-			out = os.Stdout
-		} else {
-			var err error
-			out, err = os.OpenFile(outfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-		}
-
-		out.Write(lexer.ASMLHeader)
-		out.Write(code)
-		out.Close()
+		writeCompiledCode(code)
 		return
 	}
 
@@ -114,4 +100,22 @@ Built:        %s
 Compiled by:  %s
 Go version:   %s
 `, version, buildTime, builder, goversion)
+}
+
+func writeCompiledCode(code []uint8) {
+	var out io.WriteCloser
+	if outfile == "stdout" {
+		out = os.Stdout
+	} else {
+		var err error
+		out, err = os.OpenFile(outfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+
+	out.Write(lexer.ASMLHeader)
+	out.Write(code)
+	out.Close()
 }

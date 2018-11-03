@@ -179,6 +179,10 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 		case token.HALT, token.NOOP:
 			code = append(code, opcode)
 			l.currMemLocation++
+		case token.PUSH, token.POP:
+			reg := l.oneReg(instruction[1:])
+			code = append(code, opcode, reg)
+			l.currMemLocation += 2
 		case token.ROT:
 			reg, size := l.oneRegOneDigit(instruction[1:])
 			code = append(code, opcode, reg, size)
@@ -199,7 +203,7 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 			reg1, reg2, b := l.twoRegOneByte(instruction[1:])
 			code = append(code, opcode, reg1, reg2, b)
 			l.currMemLocation += 4
-		case token.JMPA:
+		case token.JMPA, token.LDSP, token.LDSPI:
 			b := l.twoByte(instruction[1:])
 			code = append(code, opcode, uint8(b>>8), uint8(b))
 			l.currMemLocation += 3
@@ -232,6 +236,26 @@ func (l *Lexer) linkCode(code []uint8) {
 			code[loc+1] = uint8(memloc) + uint8(label.offset)
 		}
 	}
+}
+
+func (l *Lexer) oneReg(instruction [][]byte) uint8 {
+	if len(instruction) < 1 {
+		return 0
+	}
+
+	if instruction[0][0] != '%' {
+		return 0
+	}
+
+	reg, err := strconv.ParseUint(string(instruction[0][1:]), 16, 8)
+	if err != nil {
+		return 0
+	}
+	if reg > 15 {
+		reg = 0
+	}
+
+	return uint8(reg)
 }
 
 func (l *Lexer) oneRegOneDigit(instruction [][]byte) (uint8, uint8) {

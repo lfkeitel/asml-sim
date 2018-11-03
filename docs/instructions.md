@@ -25,6 +25,10 @@ number. In general, if a destination register is needed, it will be the first op
 | STRR    |  0x0D  |  %S  |  %D  |      |
 | LOADR   |  0x0E  |  %D  |  %S  |      |
 | JMPA    |  0x0F  |  H   |  L   |      |
+| LDSP    |  0x10  |  H   |  L   |      |
+| LDSPI   |  0x11  |  H   |  L   |      |
+| PUSH    |  0x12  |  %S  |      |      |
+| POP     |  0x13  |  %S  |      |      |
 
 Each opcode is one byte. Each arg is one byte.
 
@@ -58,3 +62,7 @@ B/B two half byte values
 | STRR     | Store the value of register S into the memory address stored in register R.                                                                 |
 | LOADR    | Load the value at the memory address stored in register S to register R.                                                                    |
 | JMPA     | Jump unconditionally to address.                                                                                                            |
+| LDSP    | Load the stack pointer with the contents of address. |
+| LDSPI   | Load the stack pointer with an immediate value. |
+| PUSH    | Store the value in register to the stack. The stack pointer is decremented the size of the source register. |
+| POP     | Read a value from the stack and store in register. The stack pointer is incremented the size of the destination register. |

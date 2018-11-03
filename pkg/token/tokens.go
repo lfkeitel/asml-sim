@@ -2,24 +2,29 @@ package token
 
 // Language opcodes
 const (
-	NOOP  byte = 0x0
-	LOADA byte = 0x1
-	LOADI byte = 0x2
-	STRA  byte = 0x3
-	MOVR  byte = 0x4
-	ADD   byte = 0x5
-	ADDI  byte = 0x6
-	OR    byte = 0x7
-	AND   byte = 0x8
-	XOR   byte = 0x9
-	ROT   byte = 0xA
-	JMP   byte = 0xB
-	HALT  byte = 0xC
-	STRR  byte = 0xD
-	LOADR byte = 0xE
-	JMPA  byte = 0xF
+	NOOP byte = iota
+	LOADA
+	LOADI
+	STRA
+	MOVR
+	ADD
+	ADDI
+	OR
+	AND
+	XOR
+	ROT
+	JMP
+	HALT
+	STRR
+	LOADR
+	JMPA
+	LDSP
+	LDSPI
+	PUSH
+	POP
 )
 
+// Opcodes maps strings to an opcode byte value
 var Opcodes = map[string]byte{
 	"NOOP":  NOOP,
 	"LOADA": LOADA,
@@ -37,4 +42,8 @@ var Opcodes = map[string]byte{
 	"STRR":  STRR,
 	"LOADR": LOADR,
 	"JMPA":  JMPA,
+	"LDSP":  LDSP,
+	"LDSPI": LDSPI,
+	"PUSH":  PUSH,
+	"POP":   POP,
 }
