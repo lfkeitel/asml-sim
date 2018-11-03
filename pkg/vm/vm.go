@@ -67,30 +67,39 @@ mainLoop:
 			vm.PrintState()
 			fmt.Println(vm.output.String())
 			vm.output.Reset()
-			// time.Sleep(1 * time.Second)
 		}
 
 		switch opcode {
 		case opcodes.NOOP:
 			// noop
-		case opcodes.LOADA:
-			vm.writeStateMessage("Instr: LOADA\n")
-			vm.loadFromMem(vm.fetchByte(), vm.fetchUint16())
 		case opcodes.LOADI:
 			vm.writeStateMessage("Instr: LOADI\n")
 			vm.loadIntoReg(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.LOADA:
+			vm.writeStateMessage("Instr: LOADA\n")
+			vm.loadFromMem(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.LOADR:
+			vm.writeStateMessage("Instr: LOADR\n")
+			vm.loadRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
+
 		case opcodes.STRA:
 			vm.writeStateMessage("Instr: STRA\n")
 			vm.storeRegInMemory(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.STRR:
+			vm.writeStateMessage("Instr: STORER\n")
+			vm.storeRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
+
 		case opcodes.MOVR:
 			vm.writeStateMessage("Instr: MOVE\n")
 			vm.moveRegisters(vm.fetchByte(), vm.fetchByte())
+
 		case opcodes.ADD:
 			vm.writeStateMessage("Instr: ADD\n")
 			vm.addCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
 		case opcodes.ADDI:
 			vm.writeStateMessage("Instr: ADDI\n")
 			vm.addImmCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
+
 		case opcodes.OR:
 			vm.writeStateMessage("Instr: OR\n")
 			vm.orRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
@@ -100,12 +109,18 @@ mainLoop:
 		case opcodes.XOR:
 			vm.writeStateMessage("Instr: XOR\n")
 			vm.xorRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
+
 		case opcodes.ROT:
 			vm.writeStateMessage("Instr: ROTATE\n")
 			vm.rotateRegister(vm.fetchByte(), vm.fetchByte())
+
 		case opcodes.JMP:
 			vm.writeStateMessage("Instr: JUMP\n")
 			vm.jumpEq(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.JMPA:
+			vm.writeStateMessage("Instr: JUMPA\n")
+			vm.jumpAbs(vm.fetchUint16())
+
 		case opcodes.HALT:
 			vm.writeStateMessage("Instr: HALT\n")
 			if vm.printState {
@@ -114,36 +129,32 @@ mainLoop:
 			vm.writePrinter()
 			vm.writeString("\n")
 			break mainLoop
-		case opcodes.STRR:
-			vm.writeStateMessage("Instr: STORER\n")
-			vm.storeRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
-		case opcodes.LOADR:
-			vm.writeStateMessage("Instr: LOADR\n")
-			vm.loadRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
-		case opcodes.JMPA:
-			vm.writeStateMessage("Instr: JUMPA\n")
-			vm.jumpAbs(vm.fetchUint16())
+
 		case opcodes.LDSP:
 			vm.writeStateMessage("Instr: LDSP\n")
 			vm.loadSP(vm.fetchUint16())
 		case opcodes.LDSPI:
 			vm.writeStateMessage("Instr: LDSPI\n")
 			vm.loadSPImm(vm.fetchUint16())
+
 		case opcodes.PUSH:
 			vm.writeStateMessage("Instr: PUSH\n")
 			vm.push(vm.fetchByte())
 		case opcodes.POP:
 			vm.writeStateMessage("Instr: POP\n")
 			vm.pop(vm.fetchByte())
+
 		case opcodes.CALL:
 			vm.writeStateMessage("Instr: CALL\n")
 			vm.call(vm.fetchUint16())
 		case opcodes.CALLR:
 			vm.writeStateMessage("Instr: CALLR\n")
 			vm.callr(vm.fetchByte())
+
 		case opcodes.RTN:
 			vm.writeStateMessage("Instr: RTN\n")
 			vm.rtn()
+
 		default:
 			vm.writeString("INVALID OPCODE\n")
 			if vm.printState {
