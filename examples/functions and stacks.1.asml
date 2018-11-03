@@ -2,38 +2,29 @@
 
 ; Same as other version but less fancy
 
-; Import runtime code
-; Available labels:
-;   ~exit
-;   ~return
-@runtime
-
 :main
+    LDSPI 0x00FF
+
     ; Print H
     LOADI %1 'H'
-    ; Set return address to instruction past the JMP
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
 
     ; Print e
     LOADI %1 'e'
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
 
     ; Print ll
     LOADI %1 'l'
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
 
     LOADI %1 'l'
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
 
     ; Print o
     LOADI %1 'o'
-    ; Here we exit the program by setting it as the next return address
-    LOADI %D ~exit
-    JMPA ~print
+    CALL ~print
+
+    HALT
 
 ; Subroutines
 
@@ -42,4 +33,4 @@
     ; Print arg 1
     STRA %1 0xFFFF
     ; Return
-    JMPA ~return
+    RTN

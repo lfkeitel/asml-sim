@@ -146,17 +146,6 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 				fmt.Printf("Compiler directives must be before any code. Error in line %d\n", l.linenum)
 				os.Exit(1)
 			}
-
-			if bytes.Equal([]byte("@runtime"), line) {
-				code = append(code, runtime...)
-				for n, o := range runtimeLabels {
-					l.labels[n] = o
-				}
-				l.currMemLocation += uint16(len(code))
-				l.labelPlaces[mainLabelLoc] = LabelReplace{
-					l: "main",
-				}
-			}
 			continue
 		}
 
@@ -176,10 +165,10 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 		}
 
 		switch opcode {
-		case token.HALT, token.NOOP:
+		case token.HALT, token.NOOP, token.RTN:
 			code = append(code, opcode)
 			l.currMemLocation++
-		case token.PUSH, token.POP:
+		case token.PUSH, token.POP, token.CALLR:
 			reg := l.oneReg(instruction[1:])
 			code = append(code, opcode, reg)
 			l.currMemLocation += 2
@@ -203,7 +192,7 @@ func (l *Lexer) readCode(reader *bufio.Reader) []uint8 {
 			reg1, reg2, b := l.twoRegOneByte(instruction[1:])
 			code = append(code, opcode, reg1, reg2, b)
 			l.currMemLocation += 4
-		case token.JMPA, token.LDSP, token.LDSPI:
+		case token.JMPA, token.LDSP, token.LDSPI, token.CALL:
 			b := l.twoByte(instruction[1:])
 			code = append(code, opcode, uint8(b>>8), uint8(b))
 			l.currMemLocation += 3

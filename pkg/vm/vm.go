@@ -139,6 +139,15 @@ mainLoop:
 		case token.POP:
 			vm.writeStateMessage("Instr: POP\n")
 			vm.pop(vm.fetchByte())
+		case token.CALL:
+			vm.writeStateMessage("Instr: CALL\n")
+			vm.call(vm.fetchUint16())
+		case token.CALLR:
+			vm.writeStateMessage("Instr: CALLR\n")
+			vm.callr(vm.fetchByte())
+		case token.RTN:
+			vm.writeStateMessage("Instr: RTN\n")
+			vm.rtn()
 		default:
 			vm.writeString("INVALID OPCODE\n")
 			if vm.printState {

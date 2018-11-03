@@ -29,6 +29,9 @@ number. In general, if a destination register is needed, it will be the first op
 | LDSPI   |  0x11  |  H   |  L   |      |
 | PUSH    |  0x12  |  %S  |      |      |
 | POP     |  0x13  |  %S  |      |      |
+| CALL    |  0x14  |  H   |  L   |      |
+| CALLR   |  0x15  |  %S  |      |      |
+| RTN     |  0x16  |      |      |      |
 
 Each opcode is one byte. Each arg is one byte.
 
@@ -66,3 +69,6 @@ B/B two half byte values
 | LDSPI   | Load the stack pointer with an immediate value. |
 | PUSH    | Store the value in register to the stack. The stack pointer is decremented the size of the source register. |
 | POP     | Read a value from the stack and store in register. The stack pointer is incremented the size of the destination register. |
+| CALL    | Push the current program counter onto the stack and set the program counter to the address given. |
+| CALLR   | Push the current program counter onto the stack and set the program counter to the value of register R. |
+| RTN     | Pop 2 bytes off the stack and set the program counter to that address. |

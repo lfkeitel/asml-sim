@@ -1,67 +1,45 @@
 ; Print "Hello" using a print function
 
-; This example uses the conventional ASML runtime. See runtime.asml for the implementation. The runtime takes 16 bytes.
-
-; Import runtime code
-; Available labels:
-;   ~exit
-;   ~return
-@runtime
-
 :main
+    LDSPI 0x00FF
+
     ; Print H
     LOADI %1 'H'
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
+
     ; Print e
     LOADI %1 'e'
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
+
     ; Print ll
     LOADI %1 'l'
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
+
     LOADI %1 'l'
-    LOADI %D ~$+7
-    JMPA ~print
+    CALL ~print
+
     ; Print o
     LOADI %1 'o'
-    LOADI %D ~exit
-    JMPA ~print
+    CALL ~print
+
+    HALT
 
 ; Subroutines
 
 ; Print the argument in R1
 :print
-    ; Increment stack pointer to hold 2 byte address
-    ADDI %C %C -1
-    ; Push return address to stack
-    STRR %C %D
-    ; Increment stack pointer for next byte
-    ADDI %C %C -1
-
     ; Print arg 1
     STRA %1 0xFFFF
 
-    ; Call another function for demo
-    LOADI %D ~print_return
-    JMPA ~increment_F0
-    ; Pop return address from stack
-    ; Decrement stack pointer by two
-:print_return
-    ADDI %C %C 1
-    LOADR %D %C
-    ADDI %C %C 1
+    CALL ~increment_E0
+    RTN
 
-    ; Return
-    JMPA ~return
-
-; increment_F0 is used to demonstrate a function call from a called function
-; basically to show how the stack is used to save old link addresses and restored
-; when the called function returns. Used by :print above.
-; F0 is just an unused address for storing the counter.
-:increment_F0
-    LOADA %1 F0
+; increment_E0 is used to demonstrate a function call from a called function.
+; Used by :print above.
+; E0 is just an unused address for storing the counter.
+:increment_E0
+    LOADA %1 0xE0
+    LOADI %4 1
     ADD %1 %1 %4
-    STRA %1 F0
-    JMPA ~return
+    STRA %1 0xE0
+    RTN

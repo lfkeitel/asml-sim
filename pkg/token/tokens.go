@@ -22,6 +22,9 @@ const (
 	LDSPI
 	PUSH
 	POP
+	CALL
+	CALLR
+	RTN
 )
 
 // Opcodes maps strings to an opcode byte value
@@ -46,4 +49,7 @@ var Opcodes = map[string]byte{
 	"LDSPI": LDSPI,
 	"PUSH":  PUSH,
 	"POP":   POP,
+	"CALL":  CALL,
+	"CALLR": CALLR,
+	"RTN":   RTN,
 }

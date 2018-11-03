@@ -47,7 +47,10 @@ The cell's value will then be reset to 0. Because of this, the memory location c
 between instruction loads.
 
 The number of bytes written to memory depends on the length of the source register. Single, double, and quad width
-registers will write 1, 2, and 4 bytes respectivly starting at the address in the instruction.
+registers will write 1, 2, and 4 bytes respectively starting at the address in the instruction.
+
+There is no instruction to directly load a 32-bit register. The 16-bit registers must be loaded separately to load
+a single 32-bit value
 
 ## Language
 
@@ -140,49 +143,29 @@ Instruction information can be found in the [documentation](docs/instructions.md
 The following example prints the character 'X' to the printer 3 times using a loop:
 
 ```
-; Register 1 - loop counter
-LOADI %1 3
+    ; Register 1 - loop counter
+    LOADI %1 3
 
-; Register 2 - constant -1
-LOADI %2 0xFF
+    ; Register 2 - constant -1
+    LOADI %2 0xFF
 
-; Register 3 - char X
-LOADI %3 'X'
+    ; Register 3 - char X
+    LOADI %3 'X'
 
 :print_x
-; Print X
-STRA %3 0xFF
+    ; Print X
+    STRA %3 0xFF
 
-; Add r1 and r2 (r1 - 1), store in r1
-ADD %1 %1 %2
+    ; Add r1 and r2 (r1 - 1), store in r1
+    ADD %1 %1 %2
 
-; Check if loop counter is 0
-JMP %1 ~end
+    ; Check if loop counter is 0
+    JMP %1 ~end
 
-; Unconditional jump to print X
-JMPA ~print_x
+    ; Unconditional jump to print X
+    JMPA ~print_x
 
 :end
-; Exit
-HALT
+    ; Exit
+    HALT
 ```
-
-## Runtime
-
-A small "runtime" is available by using the directive `@runtime`. The directive
-must be on its own line.
-
-The runtime code is available [here](examples/runtime.asml). It just sets up a
-few registers with common values, sets up a stack, and return link register.
-It also provides two labels `~exit` and `~return`. `~exit` simply points to a
-HALT instruction. `~return` makes jumping to a memory location simple. It will
-take the value in register `%D`, modify a JMP instruction, and then jump to that
-location. ASML doesn't provide an instruction to jump to an address in a register
-so the code is edited at runtime with the appropriate address. This is sometimes
-referred to as a [Wheeler Jump](https://en.wikipedia.org/wiki/Goto#Wheeler_Jump)
-after David Wheeler who first developed the technique.
-
-If a program uses the runtime, the "reserved" registers MUST be used for their
-intended purposes. Currently, the only "reserved" register is %D, the link register.
-This register is used for returning to a calling function. The other registers
-are purely for the programmer's convenience and can be changed or reused as needed.

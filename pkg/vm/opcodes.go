@@ -116,8 +116,7 @@ func (vm *VM) push(r uint8) {
 		vm.sp -= 4
 		vm.writeMem32(vm.sp, vm.readQuadReg(r))
 	case isDoubleReg(r):
-		vm.sp -= 2
-		vm.writeMem16(vm.sp, vm.readDoubleReg(r))
+		vm.push16(vm.readDoubleReg(r))
 	default:
 		vm.sp--
 		vm.writeMem8(vm.sp, vm.readReg(r))
@@ -130,10 +129,34 @@ func (vm *VM) pop(r uint8) {
 		vm.writeQuadReg(r, vm.readMem32(vm.sp))
 		vm.sp += 4
 	case isDoubleReg(r):
-		vm.writeDoubleReg(r, vm.readMem16(vm.sp))
-		vm.sp += 2
+		vm.writeDoubleReg(r, vm.pop16())
 	default:
 		vm.writeReg(r, vm.readMem8(vm.sp))
 		vm.sp++
 	}
+}
+
+func (vm *VM) push16(v uint16) {
+	vm.sp -= 2
+	vm.writeMem16(vm.sp, v)
+}
+
+func (vm *VM) pop16() uint16 {
+	v := vm.readMem16(vm.sp)
+	vm.sp += 2
+	return v
+}
+
+func (vm *VM) call(pc uint16) {
+	vm.push16(vm.pc)
+	vm.pc = pc
+}
+
+func (vm *VM) callr(r uint8) {
+	vm.push16(vm.pc)
+	vm.pc = uint16(vm.readAnyReg(r))
+}
+
+func (vm *VM) rtn() {
+	vm.pc = vm.pop16()
 }
