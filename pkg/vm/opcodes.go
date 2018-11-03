@@ -8,8 +8,6 @@ import (
 
 func (vm *VM) loadFromMem(r uint8, x uint16) {
 	switch {
-	case isQuadReg(r):
-		vm.writeQuadReg(r, vm.readMem(x, 4))
 	case isDoubleReg(r):
 		vm.writeDoubleReg(r, uint16(vm.readMem(x, 2)))
 	default:
@@ -28,12 +26,10 @@ func (vm *VM) loadIntoReg(r uint8, x uint16) {
 
 func (vm *VM) storeRegInMemory(r uint8, x uint16) {
 	switch {
-	case isQuadReg(r):
-		vm.writeMem(x, 4, vm.readQuadReg(r))
 	case isDoubleReg(r):
-		vm.writeMem(x, 2, uint32(vm.readDoubleReg(r)))
+		vm.writeMem(x, 2, vm.readDoubleReg(r))
 	default:
-		vm.writeMem(x, 1, uint32(vm.readReg(r)))
+		vm.writeMem(x, 1, uint16(vm.readReg(r)))
 	}
 }
 
@@ -44,37 +40,35 @@ func (vm *VM) moveRegisters(r, s uint8) {
 func (vm *VM) addCompliment(r, s, t uint8) {
 	sv := vm.readAnyReg2Comp(s)
 	tv := vm.readAnyReg2Comp(t)
-	vm.writeAnyReg(r, uint32(int32(sv)+int32(tv)))
+	vm.writeAnyReg(r, uint16(int16(sv)+int16(tv)))
 }
 
 func (vm *VM) addImmCompliment(r, s, x uint8) {
 	sv := vm.readAnyReg2Comp(s)
-	// converting to int8 then int32 preserves the signed value of uint8
-	vm.writeAnyReg(r, uint32(int32(sv)+int32(int8(x))))
+	// converting to int8 then int16 preserves the signed value of uint8
+	vm.writeAnyReg(r, uint16(int16(sv)+int16(int8(x))))
 }
 
 func (vm *VM) orRegisters(r, s, t uint8) {
 	sv := vm.readAnyReg(s)
 	tv := vm.readAnyReg(t)
-	vm.writeAnyReg(r, uint32(int32(sv)|int32(tv)))
+	vm.writeAnyReg(r, uint16(int16(sv)|int16(tv)))
 }
 
 func (vm *VM) andRegisters(r, s, t uint8) {
 	sv := vm.readAnyReg(s)
 	tv := vm.readAnyReg(t)
-	vm.writeAnyReg(r, uint32(int32(sv)&int32(tv)))
+	vm.writeAnyReg(r, uint16(int16(sv)&int16(tv)))
 }
 
 func (vm *VM) xorRegisters(r, s, t uint8) {
 	sv := vm.readAnyReg(s)
 	tv := vm.readAnyReg(t)
-	vm.writeAnyReg(r, uint32(int32(sv)^int32(tv)))
+	vm.writeAnyReg(r, uint16(int16(sv)^int16(tv)))
 }
 
 func (vm *VM) rotateRegister(r, x uint8) {
 	switch {
-	case isQuadReg(r):
-		vm.writeQuadReg(r, bits.RotateLeft32(vm.readQuadReg(r), int(-x)))
 	case isDoubleReg(r):
 		vm.writeDoubleReg(r, bits.RotateLeft16(vm.readDoubleReg(r), int(-x)))
 	default:
@@ -112,9 +106,6 @@ func (vm *VM) loadSPImm(d uint16) {
 
 func (vm *VM) push(r uint8) {
 	switch {
-	case isQuadReg(r):
-		vm.sp -= 4
-		vm.writeMem32(vm.sp, vm.readQuadReg(r))
 	case isDoubleReg(r):
 		vm.push16(vm.readDoubleReg(r))
 	default:
@@ -125,9 +116,6 @@ func (vm *VM) push(r uint8) {
 
 func (vm *VM) pop(r uint8) {
 	switch {
-	case isQuadReg(r):
-		vm.writeQuadReg(r, vm.readMem32(vm.sp))
-		vm.sp += 4
 	case isDoubleReg(r):
 		vm.writeDoubleReg(r, vm.pop16())
 	default:

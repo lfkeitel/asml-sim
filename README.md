@@ -28,7 +28,7 @@ execute. The compiled may be used in place of a source file.
 This machine emulates a 8-bit CPU with 16-bit memory addresses. The total available memory is 64K.
 
 The machine has 10 "physical" 8-bit registers named 0 through 9. Registers A - D are double width
-registers overlaid on registers 2-9. Registers E-F are quad width. Memory cell addresses are from 0x0000-0xFFFF.
+registers overlaid on registers 2-9. Memory cell addresses are from 0x0000-0xFFFF.
 
 ```
 Register Layout:
@@ -38,19 +38,14 @@ Register Layout:
 |---------------------------------------|
 |       |   A   |   B   |   C   |   D   |
 |---------------------------------------|
-|       |       E       |       F       |
-|---------------------------------------|
 ```
 
 A value in memory address 0xFFFF will result in the value's ASCII representation being printed to the machine printer.
 The cell's value will then be reset to 0. Because of this, the memory location can't actually hold a value
 between instruction loads.
 
-The number of bytes written to memory depends on the length of the source register. Single, double, and quad width
-registers will write 1, 2, and 4 bytes respectively starting at the address in the instruction.
-
-There is no instruction to directly load a 32-bit register. The 16-bit registers must be loaded separately to load
-a single 32-bit value
+The number of bytes written to memory depends on the length of the source register. Single and double width
+registers will write 1 or 2 bytes respectively starting at the address in the instruction.
 
 ## Language
 
@@ -66,7 +61,7 @@ LOADI %1 0xFF
 HALT
 ```
 
-'%' denotes a register. (%0 - %F)
+'%' denotes a register. (%0 - %D)
 
 Literals have various forms depending on the base. The prefix '0x' denotes a hexadecimal number, the prefix
 '0' is an octal number, anything else is assumed to be a decimal number. Literals are parsed as unsigned values.

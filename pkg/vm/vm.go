@@ -18,10 +18,6 @@ const (
 	regB = 0xB
 	regC = 0xC
 	regD = 0xD
-
-	// Quad width
-	regE = 0xE
-	regF = 0xF
 )
 
 type VM struct {
