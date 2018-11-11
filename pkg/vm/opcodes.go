@@ -135,7 +135,7 @@ func (vm *VM) pop16() uint16 {
 	return v
 }
 
-func (vm *VM) call(pc uint16) {
+func (vm *VM) calli(pc uint16) {
 	vm.push16(vm.pc)
 	vm.pc = pc
 }

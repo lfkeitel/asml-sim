@@ -16,7 +16,7 @@ number. In general, if a destination register is needed, it will be the first op
 | OR      |  0x04  |  %D  |  %S1 |  %S2 |
 | ROT     |  0x05  |  %D  |  B   |      |
 | XOR     |  0x06  |  %D  |  %S1 |  %S2 |
-| CALL    |  0x07  |  H   |  L   |      |
+| CALLI   |  0x07  |  H   |  L   |      |
 | CALLR   |  0x08  |  %S  |      |      |
 | RTN     |  0x09  |      |      |      |
 | HALT    |  0x0A  |      |      |      |
@@ -49,7 +49,7 @@ B one byte value
 | ADD      | Add the values in registers S and T using 2's compliment. The result will be stored in register R. |
 | ADDI     | Add the immediate value B to register S and store the result in register D. |
 | AND      | AND the values of registers S and T and store the value in register R. |
-| CALL     | Push the current program counter onto the stack and set the program counter to the address given. |
+| CALLI    | Push the current program counter onto the stack and set the program counter to the address given. |
 | CALLR    | Push the current program counter onto the stack and set the program counter to the value of register R. |
 | HALT     | Halt execution. |
 | JMP      | Jump to memory address XY if the value in register R equals the value in register 0. |

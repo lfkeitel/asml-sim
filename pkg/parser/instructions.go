@@ -32,7 +32,7 @@ func (p *Parser) insLdspi() { p.parseNumber(opcodes.LDSPI) }
 func (p *Parser) insPush()  { p.parseReg(opcodes.PUSH) }
 func (p *Parser) insPop()   { p.parseReg(opcodes.POP) }
 func (p *Parser) insCallr() { p.parseReg(opcodes.CALLR) }
-func (p *Parser) insCall()  { p.parseNumber(opcodes.CALL) }
+func (p *Parser) insCalli() { p.parseNumber(opcodes.CALLI) }
 
 func (p *Parser) insHalt() { p.parseNoArgs(opcodes.HALT) }
 func (p *Parser) insNoop() { p.parseNoArgs(opcodes.NOOP) }

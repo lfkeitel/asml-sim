@@ -44,7 +44,7 @@ const (
 	LDSPI
 	PUSH
 	POP
-	CALL
+	CALLI
 	CALLR
 	RTN
 	keyword_end
@@ -84,7 +84,7 @@ var tokens = [...]string{
 	LDSPI: "LDSPI",
 	PUSH:  "PUSH",
 	POP:   "POP",
-	CALL:  "CALL",
+	CALLI: "CALLI",
 	CALLR: "CALLR",
 	RTN:   "RTN",
 }

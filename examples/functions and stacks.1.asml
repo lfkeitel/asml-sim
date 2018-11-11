@@ -7,22 +7,22 @@
 
     ; Print H
     LOADI %1 "H"
-    CALL print
+    CALLI print
 
     ; Print e
     LOADI %1 "e"
-    CALL print
+    CALLI print
 
     ; Print ll
     LOADI %1 "l"
-    CALL print
+    CALLI print
 
     LOADI %1 "l"
-    CALL print
+    CALLI print
 
     ; Print o
     LOADI %1 "o"
-    CALL print
+    CALLI print
 
     HALT
 

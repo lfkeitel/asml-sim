@@ -11,7 +11,7 @@ const (
 	ROT
 	XOR
 
-	CALL
+	CALLI
 	CALLR
 	RTN
 

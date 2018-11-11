@@ -86,11 +86,11 @@ mainLoop:
 			vm.writeStateMessage("Instr: STRA\n")
 			vm.storeRegInMemory(vm.fetchByte(), vm.fetchUint16())
 		case opcodes.STRR:
-			vm.writeStateMessage("Instr: STORER\n")
+			vm.writeStateMessage("Instr: STRR\n")
 			vm.storeRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
 
 		case opcodes.MOVR:
-			vm.writeStateMessage("Instr: MOVE\n")
+			vm.writeStateMessage("Instr: MOVR\n")
 			vm.moveRegisters(vm.fetchByte(), vm.fetchByte())
 
 		case opcodes.ADD:
@@ -111,14 +111,14 @@ mainLoop:
 			vm.xorRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
 
 		case opcodes.ROT:
-			vm.writeStateMessage("Instr: ROTATE\n")
+			vm.writeStateMessage("Instr: ROT\n")
 			vm.rotateRegister(vm.fetchByte(), vm.fetchByte())
 
 		case opcodes.JMP:
-			vm.writeStateMessage("Instr: JUMP\n")
+			vm.writeStateMessage("Instr: JMP\n")
 			vm.jumpEq(vm.fetchByte(), vm.fetchUint16())
 		case opcodes.JMPA:
-			vm.writeStateMessage("Instr: JUMPA\n")
+			vm.writeStateMessage("Instr: JMPA\n")
 			vm.jumpAbs(vm.fetchUint16())
 
 		case opcodes.HALT:
@@ -144,9 +144,9 @@ mainLoop:
 			vm.writeStateMessage("Instr: POP\n")
 			vm.pop(vm.fetchByte())
 
-		case opcodes.CALL:
-			vm.writeStateMessage("Instr: CALL\n")
-			vm.call(vm.fetchUint16())
+		case opcodes.CALLI:
+			vm.writeStateMessage("Instr: CALLI\n")
+			vm.calli(vm.fetchUint16())
 		case opcodes.CALLR:
 			vm.writeStateMessage("Instr: CALLR\n")
 			vm.callr(vm.fetchByte())

@@ -81,8 +81,8 @@ func (p *Parser) Parse() (*Program, error) {
 
 		case token.CALLR:
 			p.insCallr()
-		case token.CALL:
-			p.insCall()
+		case token.CALLI:
+			p.insCalli()
 
 		case token.JMP:
 			p.insJmp()
