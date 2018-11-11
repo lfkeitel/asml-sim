@@ -16,6 +16,8 @@ const (
 	EOF
 	COMMENT
 	END_INST
+	COMMA
+	IMMEDIATE
 
 	IDENT
 	LABEL
@@ -25,10 +27,9 @@ const (
 
 	keyword_beg
 	NOOP
-	LOADA
-	LOADI
-	STRA
-	MOVR
+	LOAD
+	STR
+	XFER
 	ADD
 	ADDI
 	OR
@@ -37,24 +38,22 @@ const (
 	ROT
 	JMP
 	HALT
-	STRR
-	LOADR
 	JMPA
 	LDSP
-	LDSPI
 	PUSH
 	POP
-	CALLI
-	CALLR
+	CALL
 	RTN
 	keyword_end
 )
 
 var tokens = [...]string{
-	ILLEGAL:  "ILLEGAL",
-	EOF:      "EOF",
-	COMMENT:  "COMMENT",
-	END_INST: "END_INST",
+	ILLEGAL:   "ILLEGAL",
+	EOF:       "EOF",
+	COMMENT:   "COMMENT",
+	END_INST:  "END_INST",
+	COMMA:     ",",
+	IMMEDIATE: "#",
 
 	// Identifiers & literals
 	IDENT:    "IDENT",
@@ -64,29 +63,24 @@ var tokens = [...]string{
 	REGISTER: "REGISTER",
 
 	// Keywords
-	NOOP:  "NOOP",
-	LOADA: "LOADA",
-	LOADI: "LOADI",
-	STRA:  "STRA",
-	MOVR:  "MOVR",
-	ADD:   "ADD",
-	ADDI:  "ADDI",
-	OR:    "OR",
-	AND:   "AND",
-	XOR:   "XOR",
-	ROT:   "ROT",
-	JMP:   "JMP",
-	HALT:  "HALT",
-	STRR:  "STRR",
-	LOADR: "LOADR",
-	JMPA:  "JMPA",
-	LDSP:  "LDSP",
-	LDSPI: "LDSPI",
-	PUSH:  "PUSH",
-	POP:   "POP",
-	CALLI: "CALLI",
-	CALLR: "CALLR",
-	RTN:   "RTN",
+	NOOP: "NOOP",
+	LOAD: "LOAD",
+	STR:  "STR",
+	XFER: "XFER",
+	ADD:  "ADD",
+	ADDI: "ADDI",
+	OR:   "OR",
+	AND:  "AND",
+	XOR:  "XOR",
+	ROT:  "ROT",
+	JMP:  "JMP",
+	HALT: "HALT",
+	JMPA: "JMPA",
+	LDSP: "LDSP",
+	PUSH: "PUSH",
+	POP:  "POP",
+	CALL: "CALL",
+	RTN:  "RTN",
 }
 
 // Opcodes maps strings to an opcode byte value

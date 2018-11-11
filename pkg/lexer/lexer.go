@@ -68,6 +68,8 @@ func (l *Lexer) NextToken() token.Token {
 	case ':':
 		l.readChar()
 		tok = token.NewToken(token.LABEL, l.readIdentifier(), l.line, l.column)
+	case '#':
+		tok = token.NewSimpleToken(token.IMMEDIATE, l.line, l.column)
 	case '"':
 		tok = token.NewToken(token.STRING, l.readString(), l.line, l.column)
 	case ';':
@@ -76,7 +78,12 @@ func (l *Lexer) NextToken() token.Token {
 		l.resetPos()
 	case '%':
 		l.readChar()
-		tok = token.NewToken(token.REGISTER, string(l.curCh), l.line, l.column)
+		if l.curCh == 'S' && l.peekCh == 'P' {
+			l.readChar()
+			tok = token.NewToken(token.REGISTER, "SP", l.line, l.column)
+		} else {
+			tok = token.NewToken(token.REGISTER, string(l.curCh), l.line, l.column)
+		}
 	case 0:
 		tok = token.NewSimpleToken(token.EOF, l.line, l.column)
 

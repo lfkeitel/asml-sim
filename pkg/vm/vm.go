@@ -72,6 +72,7 @@ mainLoop:
 		switch opcode {
 		case opcodes.NOOP:
 			// noop
+
 		case opcodes.LOADI:
 			vm.writeStateMessage("Instr: LOADI\n")
 			vm.loadIntoReg(vm.fetchByte(), vm.fetchUint16())
@@ -84,14 +85,14 @@ mainLoop:
 
 		case opcodes.STRA:
 			vm.writeStateMessage("Instr: STRA\n")
-			vm.storeRegInMemory(vm.fetchByte(), vm.fetchUint16())
+			vm.storeRegToMemory(vm.fetchByte(), vm.fetchUint16())
 		case opcodes.STRR:
 			vm.writeStateMessage("Instr: STRR\n")
-			vm.storeRegInMemoryAddr(vm.fetchByte(), vm.fetchByte())
+			vm.storeRegToRegAddr(vm.fetchByte(), vm.fetchByte())
 
-		case opcodes.MOVR:
-			vm.writeStateMessage("Instr: MOVR\n")
-			vm.moveRegisters(vm.fetchByte(), vm.fetchByte())
+		case opcodes.XFER:
+			vm.writeStateMessage("Instr: XFER\n")
+			vm.xferRegisters(vm.fetchByte(), vm.fetchByte())
 
 		case opcodes.ADD:
 			vm.writeStateMessage("Instr: ADD\n")
@@ -130,12 +131,15 @@ mainLoop:
 			vm.writeString("\n")
 			break mainLoop
 
-		case opcodes.LDSP:
-			vm.writeStateMessage("Instr: LDSP\n")
-			vm.loadSP(vm.fetchUint16())
+		case opcodes.LDSPA:
+			vm.writeStateMessage("Instr: LDSPA\n")
+			vm.loadSPAddr(vm.fetchUint16())
 		case opcodes.LDSPI:
 			vm.writeStateMessage("Instr: LDSPI\n")
 			vm.loadSPImm(vm.fetchUint16())
+		case opcodes.LDSPR:
+			vm.writeStateMessage("Instr: LDSPR\n")
+			vm.loadSPReg(vm.fetchByte())
 
 		case opcodes.PUSH:
 			vm.writeStateMessage("Instr: PUSH\n")
@@ -144,9 +148,9 @@ mainLoop:
 			vm.writeStateMessage("Instr: POP\n")
 			vm.pop(vm.fetchByte())
 
-		case opcodes.CALLI:
-			vm.writeStateMessage("Instr: CALLI\n")
-			vm.calli(vm.fetchUint16())
+		case opcodes.CALLA:
+			vm.writeStateMessage("Instr: CALLA\n")
+			vm.calla(vm.fetchUint16())
 		case opcodes.CALLR:
 			vm.writeStateMessage("Instr: CALLR\n")
 			vm.callr(vm.fetchByte())

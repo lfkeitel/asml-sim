@@ -57,7 +57,7 @@ a 16-bit value, in particular for immediate values or memory locations.
 Each instruction is written using mnemonics:
 
 ```
-LOADI %1 0xFF
+LOAD %1 #0xFF
 HALT
 ```
 
@@ -75,13 +75,15 @@ are inserted as is and interpreted as raw data.
 Raw bytes can be used when the line doesn't start with a comment, label, or instruction.
 See the data section examples below.
 
+Immediate values are prefixed with a pound sign: `#0xC000`.
+
 ### Comments
 
 Comments are allowed by starting a line with a semicolon, blank lines are ok as well:
 
 ```
 ; Load FF into register 1
-LOADI %1 0xFF
+LOAD %1 #0xFF
 
 ; Halt
 HALT
@@ -100,7 +102,7 @@ Labels can be used anywhere a 1 or 2 byte argument would be used:
 
 ```
 ; Load the value in memory location 'data' (13) to register 1
-LOADA %1 data
+LOAD %1 data
 
 :data
 13 42
@@ -110,7 +112,7 @@ Labels can also have simple math applied:
 
 ```
 ; Load the value in memory location 'data+1' (42) to register 1
-LOADA %1 data+1
+LOAD %1 data+1
 
 :data
 13 42
@@ -131,17 +133,17 @@ The following example prints the character 'X' to the printer 3 times using a lo
 
 ```
     ; Register 1 - loop counter
-    LOADI %1 3
+    LOAD %1 #3
 
     ; Register 2 - constant -1
-    LOADI %2 0xFF
+    LOAD %2 #0xFF
 
     ; Register 3 - char X
-    LOADI %3 "X"
+    LOAD %3 #"X"
 
 :print_x
     ; Print X
-    STRA %3 0xFF
+    STR %3 0xFF
 
     ; Add r1 and r2 (r1 - 1), store in r1
     ADD %1 %1 %2

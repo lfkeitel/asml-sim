@@ -11,7 +11,7 @@ const (
 	ROT
 	XOR
 
-	CALLI
+	CALLA
 	CALLR
 	RTN
 
@@ -20,8 +20,9 @@ const (
 	JMP
 	JMPA
 
-	LDSP
+	LDSPA
 	LDSPI
+	LDSPR
 
 	LOADA
 	LOADI
@@ -30,7 +31,7 @@ const (
 	STRA
 	STRR
 
-	MOVR
+	XFER
 
 	POP
 	PUSH

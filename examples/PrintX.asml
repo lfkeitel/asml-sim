@@ -1,12 +1,12 @@
 ; Register 1 - loop counter
-LOADI %1 3
+LOAD %1 #3
 
 ; Register 3 - char X
-LOADI %2 "X"
+LOAD %2 #"X"
 
 :print_x
 ; Print X
-STRA %2 0xFFFF
+STR %2 0xFFFF
 
 ; Add r1 and r2 (r1 - 1), store in r1
 ADDI %1 %1 0xFF

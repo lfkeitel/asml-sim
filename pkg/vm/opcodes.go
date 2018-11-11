@@ -24,7 +24,12 @@ func (vm *VM) loadIntoReg(r uint8, x uint16) {
 	}
 }
 
-func (vm *VM) storeRegInMemory(r uint8, x uint16) {
+func (vm *VM) loadRegInMemoryAddr(d, s uint8) {
+	addr := vm.readAnyReg(s)
+	vm.loadFromMem(d, addr)
+}
+
+func (vm *VM) storeRegToMemory(r uint8, x uint16) {
 	switch {
 	case isDoubleReg(r):
 		vm.writeMem(x, 2, vm.readDoubleReg(r))
@@ -33,7 +38,12 @@ func (vm *VM) storeRegInMemory(r uint8, x uint16) {
 	}
 }
 
-func (vm *VM) moveRegisters(r, s uint8) {
+func (vm *VM) storeRegToRegAddr(s, d uint8) {
+	addr := vm.readAnyReg(d)
+	vm.storeRegToMemory(s, addr)
+}
+
+func (vm *VM) xferRegisters(r, s uint8) {
 	vm.writeAnyReg(r, vm.readAnyReg(s))
 }
 
@@ -82,26 +92,20 @@ func (vm *VM) jumpEq(r uint8, d uint16) {
 	}
 }
 
-func (vm *VM) storeRegInMemoryAddr(d, s uint8) {
-	addr := vm.readAnyReg(d)
-	vm.storeRegInMemory(s, addr)
-}
-
-func (vm *VM) loadRegInMemoryAddr(d, s uint8) {
-	addr := vm.readAnyReg(s)
-	vm.loadFromMem(d, addr)
-}
-
 func (vm *VM) jumpAbs(d uint16) {
 	vm.pc = d
 }
 
-func (vm *VM) loadSP(d uint16) {
+func (vm *VM) loadSPAddr(d uint16) {
 	vm.sp = vm.readMem16(d)
 }
 
 func (vm *VM) loadSPImm(d uint16) {
 	vm.sp = d
+}
+
+func (vm *VM) loadSPReg(d uint8) {
+	vm.sp = vm.readAnyReg(d)
 }
 
 func (vm *VM) push(r uint8) {
@@ -135,7 +139,7 @@ func (vm *VM) pop16() uint16 {
 	return v
 }
 
-func (vm *VM) calli(pc uint16) {
+func (vm *VM) calla(pc uint16) {
 	vm.push16(vm.pc)
 	vm.pc = pc
 }

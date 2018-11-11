@@ -1,26 +1,26 @@
 ; Print "Hello" using a print function
 
 :main
-    LDSPI 0x00FF
+    LDSP #0x00FF
 
     ; Print H
-    LOADI %1 "H"
-    CALLI print
+    LOAD %1 #"H"
+    CALL print
 
     ; Print e
-    LOADI %1 "e"
-    CALLI print
+    LOAD %1 #"e"
+    CALL print
 
     ; Print ll
-    LOADI %1 "l"
-    CALLI print
+    LOAD %1 #"l"
+    CALL print
 
-    LOADI %1 "l"
-    CALLI print
+    LOAD %1 #"l"
+    CALL print
 
     ; Print o
-    LOADI %1 "o"
-    CALLI print
+    LOAD %1 #"o"
+    CALL print
 
     HALT
 
@@ -29,17 +29,17 @@
 ; Print the argument in R1
 :print
     ; Print arg 1
-    STRA %1 0xFFFF
+    STR %1 0xFFFF
 
-    CALLI increment_E0
+    CALL increment_E0
     RTN
 
 ; increment_E0 is used to demonstrate a function call from a called function.
 ; Used by :print above.
 ; E0 is just an unused address for storing the counter.
 :increment_E0
-    LOADA %1 0xE0
-    LOADI %4 1
+    LOAD %1 0xE0
+    LOAD %4 #1
     ADD %1 %1 %4
-    STRA %1 0xE0
+    STR %1 0xE0
     RTN

@@ -1,0 +1,34 @@
+; Print "Hello" using a print function
+
+:main
+    LDSP #0x00FF
+
+    ; Print H
+    LOAD %1 #"H"
+    CALL print
+
+    ; Print e
+    LOAD %1 #"e"
+    CALL print
+
+    ; Print ll
+    LOAD %1 #"l"
+    CALL print
+
+    LOAD %1 #"l"
+    CALL print
+
+    ; Print o
+    LOAD %1 #"o"
+    CALL print
+
+    HALT
+
+; Subroutines
+
+; Print the argument in R1
+:print
+    ; Print arg 1
+    STR %1 0xFFFF
+    ; Return
+    RTN

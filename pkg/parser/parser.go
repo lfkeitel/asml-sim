@@ -44,19 +44,13 @@ func (p *Parser) Parse() (*Program, error) {
 		case token.NUMBER, token.STRING:
 			p.rawData()
 
-		case token.LOADI:
-			p.insLoadi()
-		case token.LOADA:
-			p.insLoada()
-		case token.LOADR:
-			p.insLoadr()
+		case token.LOAD:
+			p.insLoad()
 
-		case token.STRA:
-			p.insStorea()
-		case token.STRR:
-			p.insStorer()
+		case token.STR:
+			p.insStore()
 
-		case token.MOVR:
+		case token.XFER:
 			p.insMovr()
 
 		case token.ADD:
@@ -79,10 +73,8 @@ func (p *Parser) Parse() (*Program, error) {
 		case token.POP:
 			p.insPop()
 
-		case token.CALLR:
-			p.insCallr()
-		case token.CALLI:
-			p.insCalli()
+		case token.CALL:
+			p.insCall()
 
 		case token.JMP:
 			p.insJmp()
@@ -91,8 +83,6 @@ func (p *Parser) Parse() (*Program, error) {
 
 		case token.LDSP:
 			p.insLdsp()
-		case token.LDSPI:
-			p.insLdspi()
 
 		case token.HALT:
 			p.insHalt()
