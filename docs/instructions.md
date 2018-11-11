@@ -10,28 +10,28 @@ number. In general, if a destination register is needed, it will be the first op
 | Name    | Opcode | Arg1 | Arg2 | Arg3 |
 |---------|--------|------|------|------|
 | NOOP    |  0x00  |      |      |      |
-| LOADA   |  0x01  |  %D  |  H   |  L   |
-| LOADI   |  0x02  |  %D  |  H   |  L   |
-| STRA    |  0x03  |  %S  |  H   |  L   |
-| MOVR    |  0x04  |  %D  |  %S  |      |
-| ADD     |  0x05  |  %D  |  %S1 |  %S2 |
-| ADDI    |  0x06  |  %D  |  %S  |  B   |
-| OR      |  0x07  |  %D  |  %S1 |  %S2 |
-| AND     |  0x08  |  %D  |  %S1 |  %S2 |
-| XOR     |  0x09  |  %D  |  %S1 |  %S2 |
-| ROT     |  0x0A  |  %D  |  B   |      |
+| ADD     |  0x01  |  %D  |  %S1 |  %S2 |
+| ADDI    |  0x02  |  %D  |  %S  |  B   |
+| AND     |  0x03  |  %D  |  %S1 |  %S2 |
+| OR      |  0x04  |  %D  |  %S1 |  %S2 |
+| ROT     |  0x05  |  %D  |  B   |      |
+| XOR     |  0x06  |  %D  |  %S1 |  %S2 |
+| CALL    |  0x07  |  H   |  L   |      |
+| CALLR   |  0x08  |  %S  |      |      |
+| RTN     |  0x09  |      |      |      |
+| HALT    |  0x0A  |      |      |      |
 | JMP     |  0x0B  |  %S  |  H   |  L   |
-| HALT    |  0x0C  |      |      |      |
-| STRR    |  0x0D  |  %S  |  %D  |      |
-| LOADR   |  0x0E  |  %D  |  %S  |      |
-| JMPA    |  0x0F  |  H   |  L   |      |
-| LDSP    |  0x10  |  H   |  L   |      |
-| LDSPI   |  0x11  |  H   |  L   |      |
-| PUSH    |  0x12  |  %S  |      |      |
-| POP     |  0x13  |  %S  |      |      |
-| CALL    |  0x14  |  H   |  L   |      |
-| CALLR   |  0x15  |  %S  |      |      |
-| RTN     |  0x16  |      |      |      |
+| JMPA    |  0x0C  |  H   |  L   |      |
+| LDSP    |  0x0D  |  H   |  L   |      |
+| LDSPI   |  0x0E  |  H   |  L   |      |
+| LOADA   |  0x0F  |  %D  |  H   |  L   |
+| LOADI   |  0x10  |  %D  |  H   |  L   |
+| LOADR   |  0x11  |  %D  |  %S  |      |
+| STRA    |  0x12  |  %S  |  H   |  L   |
+| STRR    |  0x13  |  %S  |  %D  |      |
+| MOVR    |  0x14  |  %D  |  %S  |      |
+| POP     |  0x15  |  %S  |      |      |
+| PUSH    |  0x16  |  %S  |      |      |
 
 Each opcode is one byte. Each arg is one byte.
 
@@ -46,26 +46,26 @@ B one byte value
 
 | Mnemonic | Description |
 |----------|-------------|
-| NOOP     | NOOP |
-| LOADA    | Load the value in memory address XY into register R. |
-| LOADI    | Load the value XY into register R. |
-| STRA     | Store the value of register R into memory address XY. |
-| MOVR     | Move the value of register S into register R. |
 | ADD      | Add the values in registers S and T using 2's compliment. The result will be stored in register R. |
 | ADDI     | Add the immediate value B to register S and store the result in register D. |
-| OR       | OR the values of registers S and T and store the value in register R. |
 | AND      | AND the values of registers S and T and store the value in register R. |
-| XOR      | XOR the values of registers S and T and store the value in register R. |
-| ROT      | Rotate the bits of register R to the right X places. Bits are shifted to the right and lower order bits are moved to the higher order bits. |
-| JMP      | Jump to memory address XY if the value in register R equals the value in register 0. |
+| CALL     | Push the current program counter onto the stack and set the program counter to the address given. |
+| CALLR    | Push the current program counter onto the stack and set the program counter to the value of register R. |
 | HALT     | Halt execution. |
-| STRR     | Store the value of register S into the memory address stored in register R. |
-| LOADR    | Load the value at the memory address stored in register S to register R. |
+| JMP      | Jump to memory address XY if the value in register R equals the value in register 0. |
 | JMPA     | Jump unconditionally to address. |
 | LDSP     | Load the stack pointer with the contents of address. |
 | LDSPI    | Load the stack pointer with an immediate value. |
-| PUSH     | Store the value in register to the stack. The stack pointer is decremented the size of the source register. |
+| LOADA    | Load the value in memory address XY into register R. |
+| LOADI    | Load the value XY into register R. |
+| LOADR    | Load the value at the memory address stored in register S to register R. |
+| MOVR     | Move the value of register S into register R. |
+| NOOP     | Perform no operation. |
+| OR       | OR the values of registers S and T and store the value in register R. |
 | POP      | Read a value from the stack and store in register. The stack pointer is incremented the size of the destination register. |
-| CALL     | Push the current program counter onto the stack and set the program counter to the address given. |
-| CALLR    | Push the current program counter onto the stack and set the program counter to the value of register R. |
+| PUSH     | Store the value in register to the stack. The stack pointer is decremented the size of the source register. |
+| ROT      | Rotate the bits of register R to the right X places. Bits are shifted to the right and lower order bits are moved to the higher order bits. |
 | RTN      | Pop 2 bytes off the stack and set the program counter to that address. |
+| STRA     | Store the value of register R into memory address XY. |
+| STRR     | Store the value of register S into the memory address stored in register R. |
+| XOR      | XOR the values of registers S and T and store the value in register R. |

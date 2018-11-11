@@ -3,26 +3,35 @@ package opcodes
 // Language opcodes
 const (
 	NOOP byte = iota
-	LOADA
-	LOADI
-	STRA
-	MOVR
 	ADD
 	ADDI
-	OR
+
 	AND
-	XOR
+	OR
 	ROT
-	JMP
-	HALT
-	STRR
-	LOADR
-	JMPA
-	LDSP
-	LDSPI
-	PUSH
-	POP
+	XOR
+
 	CALL
 	CALLR
 	RTN
+
+	HALT
+
+	JMP
+	JMPA
+
+	LDSP
+	LDSPI
+
+	LOADA
+	LOADI
+	LOADR
+
+	STRA
+	STRR
+
+	MOVR
+
+	POP
+	PUSH
 )

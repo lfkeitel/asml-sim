@@ -77,18 +77,18 @@ func (vm *VM) rotateRegister(r, x uint8) {
 }
 
 func (vm *VM) jumpEq(r uint8, d uint16) {
-	if uint8(vm.readAnyReg(r)) == vm.readReg(0) {
+	if vm.readAnyReg(r) == uint16(vm.readReg(0)) {
 		vm.pc = d
 	}
 }
 
 func (vm *VM) storeRegInMemoryAddr(d, s uint8) {
-	addr := uint16(vm.readAnyReg(d))
+	addr := vm.readAnyReg(d)
 	vm.storeRegInMemory(s, addr)
 }
 
 func (vm *VM) loadRegInMemoryAddr(d, s uint8) {
-	addr := uint16(vm.readAnyReg(s))
+	addr := vm.readAnyReg(s)
 	vm.loadFromMem(d, addr)
 }
 
@@ -142,7 +142,7 @@ func (vm *VM) call(pc uint16) {
 
 func (vm *VM) callr(r uint8) {
 	vm.push16(vm.pc)
-	vm.pc = uint16(vm.readAnyReg(r))
+	vm.pc = vm.readAnyReg(r)
 }
 
 func (vm *VM) rtn() {
