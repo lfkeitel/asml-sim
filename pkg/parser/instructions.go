@@ -5,9 +5,9 @@ import (
 	"github.com/lfkeitel/asml-sim/pkg/token"
 )
 
-func (p *Parser) insLoad() { p.parseNormalInst(opcodes.LOADI, opcodes.LOADA, opcodes.LOADR) }
+func (p *Parser) insLoad() { p.parseInst(opcodes.LOADI, opcodes.LOADA, opcodes.LOADR) }
 
-func (p *Parser) insStore() { p.parseInstAddrReg(opcodes.STRA, opcodes.STRR) }
+func (p *Parser) insStore() { p.parseInstNoImm(opcodes.STRA, opcodes.STRR) }
 
 func (p *Parser) insMovr() { p.parseRegReg(opcodes.XFER) }
 
@@ -23,12 +23,12 @@ func (p *Parser) insRot() { p.parseRegHalfNumber(opcodes.ROT) }
 func (p *Parser) insJmp()  { p.parseRegNumber(opcodes.JMP) }
 func (p *Parser) insJmpa() { p.parseNumber(opcodes.JMPA) }
 
-func (p *Parser) insLdsp() { p.parseNormalInstNoDest(opcodes.LDSPI, opcodes.LDSPA, opcodes.LDSPR) }
+func (p *Parser) insLdsp() { p.parseInstNoDest(opcodes.LDSPI, opcodes.LDSPA, opcodes.LDSPR) }
 
 func (p *Parser) insPush() { p.parseReg(opcodes.PUSH) }
 func (p *Parser) insPop()  { p.parseReg(opcodes.POP) }
 
-func (p *Parser) insCall() { p.parseInstAddrRegNoDest(opcodes.CALLA, opcodes.CALLR) }
+func (p *Parser) insCall() { p.parseInstNoImmNoDest(opcodes.CALLA, opcodes.CALLR) }
 
 func (p *Parser) insHalt() { p.parseNoArgs(opcodes.HALT) }
 func (p *Parser) insNoop() { p.parseNoArgs(opcodes.NOOP) }
@@ -39,9 +39,7 @@ func (p *Parser) insRtn()  { p.parseNoArgs(opcodes.RTN) }
 func (p *Parser) parseNoArgs(c byte) {
 	p.p.appendCode(c)
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }
 
 func (p *Parser) parseReg(c byte) {
@@ -55,9 +53,7 @@ func (p *Parser) parseReg(c byte) {
 	// Write code
 	p.p.appendCode(c, reg)
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }
 
 func (p *Parser) parseRegReg(c byte) {
@@ -78,9 +74,7 @@ func (p *Parser) parseRegReg(c byte) {
 	// Write code
 	p.p.appendCode(c, reg, reg2)
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }
 
 func (p *Parser) parseRegRegReg(c byte) {
@@ -108,9 +102,7 @@ func (p *Parser) parseRegRegReg(c byte) {
 	// Write code
 	p.p.appendCode(c, reg, reg2, reg3)
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }
 
 func (p *Parser) parseRegNumber(c byte) {
@@ -131,9 +123,7 @@ func (p *Parser) parseRegNumber(c byte) {
 	// Write code
 	p.p.appendCode(c, reg, uint8(val>>8), uint8(val))
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }
 
 func (p *Parser) parseRegHalfNumber(c byte) {
@@ -154,9 +144,7 @@ func (p *Parser) parseRegHalfNumber(c byte) {
 	// Write code
 	p.p.appendCode(c, reg, uint8(val))
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }
 
 func (p *Parser) parseRegRegHalfNumber(c byte) {
@@ -184,9 +172,7 @@ func (p *Parser) parseRegRegHalfNumber(c byte) {
 	// Write code
 	p.p.appendCode(c, reg, reg2, uint8(val))
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }
 
 func (p *Parser) parseNumber(c byte) {
@@ -200,7 +186,5 @@ func (p *Parser) parseNumber(c byte) {
 	// Write code
 	p.p.appendCode(c, uint8(val>>8), uint8(val))
 
-	if p.peekTokenIs(token.END_INST) {
-		p.readToken()
-	}
+	p.expectToken(token.END_INST)
 }

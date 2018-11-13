@@ -92,7 +92,7 @@ func (p *Parser) Parse() (*Program, error) {
 			p.insRtn()
 
 		default:
-			p.err = fmt.Errorf("line %d, col %d Unknown token %q", p.ct.Line, p.ct.Column, p.ct.Type.String())
+			p.err = fmt.Errorf("line %d, col %d Unknown token %v", p.ct.Line, p.ct.Column, p.ct.Type.String())
 		}
 
 		p.readToken()
@@ -114,7 +114,14 @@ func (p *Parser) curTokenIs(t token.Type) bool  { return p.ct.Type == t }
 func (p *Parser) peekTokenIs(t token.Type) bool { return p.peek.Type == t }
 
 func (p *Parser) tokenErr(t ...token.Type) {
-	p.err = fmt.Errorf("expected %q on line %d, got %q", t, p.ct.Line, p.ct.Type)
+	p.err = fmt.Errorf("expected %v on line %d, got %v", t, p.ct.Line, p.ct.Type)
+}
+
+func (p *Parser) expectToken(t token.Type) {
+	p.readToken()
+	if !p.curTokenIs(t) {
+		p.tokenErr(t)
+	}
 }
 
 func (p *Parser) parseErr(msg string) {

@@ -2,7 +2,7 @@ package parser
 
 import "github.com/lfkeitel/asml-sim/pkg/token"
 
-func (p *Parser) parseNormalInst(imm, addr, reg byte) {
+func (p *Parser) parseInst(imm, addr, reg byte) {
 	p.readToken()
 	dest, ok := p.parseRegister()
 	if !ok {
@@ -35,9 +35,10 @@ func (p *Parser) parseNormalInst(imm, addr, reg byte) {
 	} else {
 		p.tokenErr(token.NUMBER, token.IMMEDIATE, token.REGISTER)
 	}
+	p.expectToken(token.END_INST)
 }
 
-func (p *Parser) parseInstAddrReg(addr, reg byte) {
+func (p *Parser) parseInstNoImm(addr, reg byte) {
 	p.readToken()
 	dest, ok := p.parseRegister()
 	if !ok {
@@ -62,9 +63,10 @@ func (p *Parser) parseInstAddrReg(addr, reg byte) {
 	} else {
 		p.tokenErr(token.NUMBER, token.REGISTER)
 	}
+	p.expectToken(token.END_INST)
 }
 
-func (p *Parser) parseNormalInstNoDest(imm, addr, reg byte) {
+func (p *Parser) parseInstNoDest(imm, addr, reg byte) {
 	p.readToken()
 	if p.curTokenIs(token.NUMBER) || p.curTokenIs(token.IDENT) {
 		val, ok := p.parseAddress(1)
@@ -91,9 +93,10 @@ func (p *Parser) parseNormalInstNoDest(imm, addr, reg byte) {
 	} else {
 		p.tokenErr(token.NUMBER, token.IMMEDIATE, token.REGISTER)
 	}
+	p.expectToken(token.END_INST)
 }
 
-func (p *Parser) parseInstAddrRegNoDest(addr, reg byte) {
+func (p *Parser) parseInstNoImmNoDest(addr, reg byte) {
 	p.readToken()
 	if p.curTokenIs(token.NUMBER) || p.curTokenIs(token.IDENT) {
 		val, ok := p.parseAddress(1)
@@ -112,4 +115,5 @@ func (p *Parser) parseInstAddrRegNoDest(addr, reg byte) {
 	} else {
 		p.tokenErr(token.NUMBER, token.REGISTER)
 	}
+	p.expectToken(token.END_INST)
 }
