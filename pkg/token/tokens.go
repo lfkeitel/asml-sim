@@ -44,6 +44,7 @@ const (
 	POP
 	CALL
 	RTN
+	RMB
 	keyword_end
 )
 
@@ -81,6 +82,7 @@ var tokens = [...]string{
 	POP:  "POP",
 	CALL: "CALL",
 	RTN:  "RTN",
+	RMB:  "RMB",
 }
 
 // Opcodes maps strings to an opcode byte value

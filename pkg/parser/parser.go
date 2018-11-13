@@ -91,6 +91,9 @@ func (p *Parser) Parse() (*Program, error) {
 		case token.RTN:
 			p.insRtn()
 
+		case token.RMB:
+			p.insRmb()
+
 		default:
 			p.err = fmt.Errorf("line %d, col %d Unknown token %v", p.ct.Line, p.ct.Column, p.ct.Type.String())
 		}

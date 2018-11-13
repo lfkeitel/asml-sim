@@ -34,6 +34,23 @@ func (p *Parser) insHalt() { p.parseNoArgs(opcodes.HALT) }
 func (p *Parser) insNoop() { p.parseNoArgs(opcodes.NOOP) }
 func (p *Parser) insRtn()  { p.parseNoArgs(opcodes.RTN) }
 
+func (p *Parser) insRmb() {
+	p.readToken()
+	if !p.curTokenIs(token.NUMBER) {
+		p.parseErr("RMB can only take a number argument")
+		return
+	}
+
+	val, err := parseUint16(p.ct.Literal)
+	if err != nil {
+		p.parseErr("invalid number literal")
+		return
+	}
+
+	bytes := make([]byte, val)
+	p.p.appendCode(bytes...)
+}
+
 // Common argument parsers
 
 func (p *Parser) parseNoArgs(c byte) {

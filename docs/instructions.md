@@ -36,6 +36,15 @@ are embedded in the instruction itself.
 - `RTN`
 - `HALT`
 
+## RMB
+
+RMB is not a real instruction. It simply reserves the specified number of bytes
+in memory.
+
+### Examples
+
+- `RMB 10` - Reserve 10 bytes of memory.
+
 ## LOAD
 
 Load a value into a register.
