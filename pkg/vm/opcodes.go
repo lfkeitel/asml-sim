@@ -47,42 +47,89 @@ func (vm *VM) xferRegisters(r, s uint8) {
 	vm.writeAnyReg(r, vm.readAnyReg(s))
 }
 
-func (vm *VM) addCompliment(r, s, t uint8) {
-	sv := vm.readAnyReg2Comp(s)
-	tv := vm.readAnyReg2Comp(t)
-	vm.writeAnyReg(r, uint16(int16(sv)+int16(tv)))
+func (vm *VM) addAddr(d uint8, s uint16) {
+	switch {
+	case isDoubleReg(d):
+		vm.writeDoubleReg(d, vm.readAnyReg(d)+vm.readMem16(s))
+	default:
+		vm.writeReg(d, uint8(vm.readAnyReg(d))+vm.readMem8(s))
+	}
 }
 
-func (vm *VM) addImmCompliment(r, s, x uint8) {
-	sv := vm.readAnyReg2Comp(s)
-	// converting to int8 then int16 preserves the signed value of uint8
-	vm.writeAnyReg(r, uint16(int16(sv)+int16(int8(x))))
+func (vm *VM) addImm(d uint8, s uint16) {
+	vm.writeAnyReg(d, vm.readAnyReg(d)+s)
 }
 
-func (vm *VM) orRegisters(r, s, t uint8) {
-	sv := vm.readAnyReg(s)
-	tv := vm.readAnyReg(t)
-	vm.writeAnyReg(r, uint16(int16(sv)|int16(tv)))
+func (vm *VM) addReg(d uint8, s uint8) {
+	vm.writeAnyReg(d, vm.readAnyReg(s)+vm.readAnyReg(d))
 }
 
-func (vm *VM) andRegisters(r, s, t uint8) {
-	sv := vm.readAnyReg(s)
-	tv := vm.readAnyReg(t)
-	vm.writeAnyReg(r, uint16(int16(sv)&int16(tv)))
+func (vm *VM) orAddr(d uint8, s uint16) {
+	switch {
+	case isDoubleReg(d):
+		vm.writeDoubleReg(d, vm.readAnyReg(d)|vm.readMem16(s))
+	default:
+		vm.writeReg(d, uint8(vm.readAnyReg(d))|vm.readMem8(s))
+	}
 }
 
-func (vm *VM) xorRegisters(r, s, t uint8) {
-	sv := vm.readAnyReg(s)
-	tv := vm.readAnyReg(t)
-	vm.writeAnyReg(r, uint16(int16(sv)^int16(tv)))
+func (vm *VM) orImm(d uint8, s uint16) {
+	vm.writeAnyReg(d, vm.readAnyReg(d)|s)
 }
 
-func (vm *VM) rotateRegister(r, x uint8) {
+func (vm *VM) orReg(d uint8, s uint8) {
+	vm.writeAnyReg(d, vm.readAnyReg(s)|vm.readAnyReg(d))
+}
+
+func (vm *VM) andAddr(d uint8, s uint16) {
+	switch {
+	case isDoubleReg(d):
+		vm.writeDoubleReg(d, vm.readAnyReg(d)&vm.readMem16(s))
+	default:
+		vm.writeReg(d, uint8(vm.readAnyReg(d))&vm.readMem8(s))
+	}
+}
+
+func (vm *VM) andImm(d uint8, s uint16) {
+	vm.writeAnyReg(d, vm.readAnyReg(d)&s)
+}
+
+func (vm *VM) andReg(d uint8, s uint8) {
+	vm.writeAnyReg(d, vm.readAnyReg(s)&vm.readAnyReg(d))
+}
+
+func (vm *VM) xorAddr(d uint8, s uint16) {
+	switch {
+	case isDoubleReg(d):
+		vm.writeDoubleReg(d, vm.readAnyReg(d)^vm.readMem16(s))
+	default:
+		vm.writeReg(d, uint8(vm.readAnyReg(d))^vm.readMem8(s))
+	}
+}
+
+func (vm *VM) xorImm(d uint8, s uint16) {
+	vm.writeAnyReg(d, vm.readAnyReg(d)^s)
+}
+
+func (vm *VM) xorReg(d uint8, s uint8) {
+	vm.writeAnyReg(d, vm.readAnyReg(s)^vm.readAnyReg(d))
+}
+
+func (vm *VM) rotrRegister(r, x uint8) {
 	switch {
 	case isDoubleReg(r):
 		vm.writeDoubleReg(r, bits.RotateLeft16(vm.readDoubleReg(r), int(-x)))
 	default:
 		vm.writeReg(r, bits.RotateLeft8(vm.readReg(r), int(-x)))
+	}
+}
+
+func (vm *VM) rotlRegister(r, x uint8) {
+	switch {
+	case isDoubleReg(r):
+		vm.writeDoubleReg(r, bits.RotateLeft16(vm.readDoubleReg(r), int(x)))
+	default:
+		vm.writeReg(r, bits.RotateLeft8(vm.readReg(r), int(x)))
 	}
 }
 

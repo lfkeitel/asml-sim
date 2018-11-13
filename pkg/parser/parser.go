@@ -55,8 +55,6 @@ func (p *Parser) Parse() (*Program, error) {
 
 		case token.ADD:
 			p.insAdd()
-		case token.ADDI:
-			p.insAddi()
 
 		case token.OR:
 			p.insOr()
@@ -65,8 +63,10 @@ func (p *Parser) Parse() (*Program, error) {
 		case token.XOR:
 			p.insXor()
 
-		case token.ROT:
-			p.insRot()
+		case token.ROTR:
+			p.insRotr()
+		case token.ROTL:
+			p.insRotl()
 
 		case token.PUSH:
 			p.insPush()

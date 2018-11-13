@@ -31,11 +31,11 @@ const (
 	STR
 	XFER
 	ADD
-	ADDI
 	OR
 	AND
 	XOR
-	ROT
+	ROTR
+	ROTL
 	JMP
 	HALT
 	JMPA
@@ -68,11 +68,11 @@ var tokens = [...]string{
 	STR:  "STR",
 	XFER: "XFER",
 	ADD:  "ADD",
-	ADDI: "ADDI",
 	OR:   "OR",
 	AND:  "AND",
 	XOR:  "XOR",
-	ROT:  "ROT",
+	ROTR: "ROTR",
+	ROTL: "ROTL",
 	JMP:  "JMP",
 	HALT: "HALT",
 	JMPA: "JMPA",

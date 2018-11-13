@@ -11,14 +11,14 @@ func (p *Parser) insStore() { p.parseInstNoImm(opcodes.STRA, opcodes.STRR) }
 
 func (p *Parser) insMovr() { p.parseRegReg(opcodes.XFER) }
 
-func (p *Parser) insAdd()  { p.parseRegRegReg(opcodes.ADD) }
-func (p *Parser) insAddi() { p.parseRegRegHalfNumber(opcodes.ADDI) }
+func (p *Parser) insAdd() { p.parseInst(opcodes.ADDI, opcodes.ADDA, opcodes.ADDR) }
 
-func (p *Parser) insOr()  { p.parseRegRegReg(opcodes.OR) }
-func (p *Parser) insAnd() { p.parseRegRegReg(opcodes.AND) }
-func (p *Parser) insXor() { p.parseRegRegReg(opcodes.XOR) }
+func (p *Parser) insOr()  { p.parseInst(opcodes.ORI, opcodes.ORA, opcodes.ORR) }
+func (p *Parser) insAnd() { p.parseInst(opcodes.ANDI, opcodes.ANDA, opcodes.ANDR) }
+func (p *Parser) insXor() { p.parseInst(opcodes.XORI, opcodes.XORA, opcodes.XORR) }
 
-func (p *Parser) insRot() { p.parseRegHalfNumber(opcodes.ROT) }
+func (p *Parser) insRotr() { p.parseRegHalfNumber(opcodes.ROTR) }
+func (p *Parser) insRotl() { p.parseRegHalfNumber(opcodes.ROTL) }
 
 func (p *Parser) insJmp()  { p.parseRegNumber(opcodes.JMP) }
 func (p *Parser) insJmpa() { p.parseNumber(opcodes.JMPA) }
@@ -77,34 +77,6 @@ func (p *Parser) parseRegReg(c byte) {
 	p.expectToken(token.END_INST)
 }
 
-func (p *Parser) parseRegRegReg(c byte) {
-	// Arg 1
-	p.readToken()
-	reg, ok := p.parseRegister()
-	if !ok {
-		return
-	}
-
-	// Arg 2
-	p.readToken()
-	reg2, ok := p.parseRegister()
-	if !ok {
-		return
-	}
-
-	// Arg 3
-	p.readToken()
-	reg3, ok := p.parseRegister()
-	if !ok {
-		return
-	}
-
-	// Write code
-	p.p.appendCode(c, reg, reg2, reg3)
-
-	p.expectToken(token.END_INST)
-}
-
 func (p *Parser) parseRegNumber(c byte) {
 	// Arg 1
 	p.readToken()
@@ -136,41 +108,23 @@ func (p *Parser) parseRegHalfNumber(c byte) {
 
 	// Arg 2
 	p.readToken()
+	if !p.curTokenIs(token.IMMEDIATE) {
+		p.tokenErr(token.IMMEDIATE)
+		return
+	}
+
+	p.readToken()
 	val, ok := p.parseAddress(2)
 	if !ok {
 		return
 	}
 
+	if val > 255 {
+		p.parseErr("rotation number too large, must be 0-255")
+	}
+
 	// Write code
 	p.p.appendCode(c, reg, uint8(val))
-
-	p.expectToken(token.END_INST)
-}
-
-func (p *Parser) parseRegRegHalfNumber(c byte) {
-	// Arg 1
-	p.readToken()
-	reg, ok := p.parseRegister()
-	if !ok {
-		return
-	}
-
-	// Arg 2
-	p.readToken()
-	reg2, ok := p.parseRegister()
-	if !ok {
-		return
-	}
-
-	// Arg 3
-	p.readToken()
-	val, ok := p.parseAddress(3)
-	if !ok {
-		return
-	}
-
-	// Write code
-	p.p.appendCode(c, reg, reg2, uint8(val))
 
 	p.expectToken(token.END_INST)
 }

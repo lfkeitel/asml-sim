@@ -40,6 +40,6 @@
 :increment_E0
     LOAD %1 0xE0
     LOAD %4 #1
-    ADD %1 %1 %4
+    ADD %1 %4
     STR %1 0xE0
     RTN

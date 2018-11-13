@@ -3,13 +3,25 @@ package opcodes
 // Language opcodes
 const (
 	NOOP byte = iota
-	ADD
-	ADDI
 
-	AND
-	OR
-	ROT
-	XOR
+	ADDA
+	ADDI
+	ADDR
+
+	ANDA
+	ANDI
+	ANDR
+
+	ORA
+	ORI
+	ORR
+
+	XORA
+	XORI
+	XORR
+
+	ROTR
+	ROTL
 
 	CALLA
 	CALLR

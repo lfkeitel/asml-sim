@@ -94,26 +94,52 @@ mainLoop:
 			vm.writeStateMessage("Instr: XFER\n")
 			vm.xferRegisters(vm.fetchByte(), vm.fetchByte())
 
-		case opcodes.ADD:
-			vm.writeStateMessage("Instr: ADD\n")
-			vm.addCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
+		case opcodes.ADDA:
+			vm.writeStateMessage("Instr: ADDA\n")
+			vm.addAddr(vm.fetchByte(), vm.fetchUint16())
 		case opcodes.ADDI:
 			vm.writeStateMessage("Instr: ADDI\n")
-			vm.addImmCompliment(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
+			vm.addImm(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.ADDR:
+			vm.writeStateMessage("Instr: ADDR\n")
+			vm.addReg(vm.fetchByte(), vm.fetchByte())
 
-		case opcodes.OR:
-			vm.writeStateMessage("Instr: OR\n")
-			vm.orRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
-		case opcodes.AND:
-			vm.writeStateMessage("Instr: AND\n")
-			vm.andRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
-		case opcodes.XOR:
-			vm.writeStateMessage("Instr: XOR\n")
-			vm.xorRegisters(vm.fetchByte(), vm.fetchByte(), vm.fetchByte())
+		case opcodes.ORA:
+			vm.writeStateMessage("Instr: ORA\n")
+			vm.orAddr(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.ORI:
+			vm.writeStateMessage("Instr: ORI\n")
+			vm.orImm(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.ORR:
+			vm.writeStateMessage("Instr: ORR\n")
+			vm.orReg(vm.fetchByte(), vm.fetchByte())
 
-		case opcodes.ROT:
-			vm.writeStateMessage("Instr: ROT\n")
-			vm.rotateRegister(vm.fetchByte(), vm.fetchByte())
+		case opcodes.ANDA:
+			vm.writeStateMessage("Instr: ANDA\n")
+			vm.andAddr(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.ANDI:
+			vm.writeStateMessage("Instr: ANDI\n")
+			vm.andImm(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.ANDR:
+			vm.writeStateMessage("Instr: ANDR\n")
+			vm.andReg(vm.fetchByte(), vm.fetchByte())
+
+		case opcodes.XORA:
+			vm.writeStateMessage("Instr: XORA\n")
+			vm.xorAddr(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.XORI:
+			vm.writeStateMessage("Instr: XORI\n")
+			vm.xorImm(vm.fetchByte(), vm.fetchUint16())
+		case opcodes.XORR:
+			vm.writeStateMessage("Instr: XORR\n")
+			vm.xorReg(vm.fetchByte(), vm.fetchByte())
+
+		case opcodes.ROTR:
+			vm.writeStateMessage("Instr: ROTR\n")
+			vm.rotrRegister(vm.fetchByte(), vm.fetchByte())
+		case opcodes.ROTL:
+			vm.writeStateMessage("Instr: ROTL\n")
+			vm.rotlRegister(vm.fetchByte(), vm.fetchByte())
 
 		case opcodes.JMP:
 			vm.writeStateMessage("Instr: JMP\n")

@@ -1,53 +1,277 @@
-# Instruction Set
+# Instructions
 
-**NOTE:** Please refer to new instruction guide.
+## Modes
 
-## Assembly Table
+Most instructions have different modes depending on their arguments.
 
-In the table below, the first column is the opcode in hexadecimal. The second column is a syntax
-for the operands of an opcode. An 'R', 'S', or 'T' represents a register address. An 'X' or 'Y'
-represents a single hexadecimal digit. Many instructions will accept an 'XYXY' which is a 16-bit
-number. In general, if a destination register is needed, it will be the first operand.
+### Immediate Mode
 
-| Name    | Arg1 | Arg2 | Arg3 |
-|---------|------|------|------|
-| NOOP    |      |      |      |
-| ADD     |  %D  |  %S1 |  %S2 |
-| ADDI    |  %D  |  %S  |  B   |
-| AND     |  %D  |  %S1 |  %S2 |
-| OR      |  %D  |  %S1 |  %S2 |
-| ROT     |  %D  |  B   |      |
-| XOR     |  %D  |  %S1 |  %S2 |
-| RTN     |      |      |      |
-| HALT    |      |      |      |
-| JMP     |  %S  |  H   |  L   |
-| JMPA    |  H   |  L   |      |
-| POP     |  %S  |      |      |
-| PUSH    |  %S  |      |      |
+Immediate mode is used when a value directly follows the opcode in memory. This
+can be used to load and use constant values.
 
-Each opcode is one byte. Each arg is one byte.
+- `LOAD %D #0x1234` - Load the immediate value 0x1234 to register D.
 
-%D destination register
-%S1 source register 1
-%S2 source register 2
-H higher byte of 2-byte value
-L lower byte of 2-byte value
-B one byte value
+### Address Mode
 
-## Descriptions
+Address mode is used when interacting with values stored in memory. For example
+to load or store a value from a memory location.
 
-| Mnemonic | Description |
-|----------|-------------|
-| ADD      | Add the values in registers S and T using 2's compliment. The result will be stored in register R. |
-| ADDI     | Add the immediate value B to register S and store the result in register D. |
-| AND      | AND the values of registers S and T and store the value in register R. |
-| HALT     | Halt execution. |
-| JMP      | Jump to memory address XY if the value in register R equals the value in register 0. |
-| JMPA     | Jump unconditionally to address. |
-| NOOP     | Perform no operation. |
-| OR       | OR the values of registers S and T and store the value in register R. |
-| POP      | Read a value from the stack and store in register. The stack pointer is incremented the size of the destination register. |
-| PUSH     | Store the value in register to the stack. The stack pointer is decremented the size of the source register. |
-| ROT      | Rotate the bits of register R to the right X places. Bits are shifted to the right and lower order bits are moved to the higher order bits. |
-| RTN      | Pop 2 bytes off the stack and set the program counter to that address. |
-| XOR      | XOR the values of registers S and T and store the value in register R. |
+- `LOAD %D 0xC000` - Load the value at address 0xC000 to register D.
+- `STR %D 0xC000` - Store the value in register D to memory location 0xC000.
+
+### Register Mode
+
+Register mode is when a register is used as the source of an instruction.
+Semantics may differ between instructions where some may used the
+value as an immediate value and others may use it as an address.
+
+- `LOAD %D %A` - Load the value at the address stored in register A to register D.
+- `STR %D %A` - Store the value in register D at the address stored in register A.
+
+### Inherent Mode
+
+Inherent mode is when an instruction either has no arguments or its arguments
+are embedded in the instruction itself.
+
+- `RTN`
+- `HALT`
+
+## LOAD
+
+Load a value into a register.
+
+### Modes
+
+- Immediate
+- Address
+- Register
+
+### Examples
+
+- `LOAD %D #0x1234`
+- `LOAD %D 0xC000`
+- `LOAD %D %A`
+
+## STR
+
+Store a value into memory.
+
+### Modes
+
+- Address
+- Register
+
+### Examples
+
+- `STR %D 0xC000`
+- `STR %D %A`
+
+## XFER
+
+Transfer data between registers.
+
+### Modes
+
+- Register
+
+### Examples
+
+- `XFER %A %D` - Move the data from register D to register A
+
+## CALL
+
+Call a subroutine by setting the program counter to an address. The current
+stack pointer will be pushed onto the stack.
+
+### Modes
+
+- Address
+- Register
+
+### Examples
+
+- `CALL 0xC000`
+- `CALL %A`
+- `CALL sub_label`
+
+## LDSP
+
+Load a value into a the stack pointer.
+
+### Modes
+
+- Immediate
+- Address
+- Register
+
+### Examples
+
+- `LDSP %D #0x1234`
+- `LDSP %D 0xC000`
+- `LDSP %D %A`
+
+## ADD
+
+Add a value to a register.
+
+### Modes
+
+- Immediate
+- Address
+- Register
+
+### Examples
+
+- `ADD %D #0x1234`
+- `ADD %D 0xC000`
+- `ADD %D %A`
+
+## PUSH
+
+Push a register value onto the stack.
+
+### Modes
+
+- Register
+
+### Examples
+
+- `PUSH %A`
+- `PUSH %2`
+
+## POP
+
+Pop a value off the stack and store it into a register.
+
+### Modes
+
+- Register
+
+### Examples
+
+- `POP %A`
+- `POP %2`
+
+## NOOP
+
+Do nothing.
+
+### Modes
+
+- Inherent
+
+## RTN
+
+Return from a subroutine call. The new program counter is popped off the stack
+and execution is resumed.
+
+### Modes
+
+- Inherent
+
+## HALT
+
+Stop all execution.
+
+### Modes
+
+- Inherent
+
+## JMP
+
+Jump to an address if the source register is equal to the value of register 0.
+
+### Modes
+
+- Mixed
+
+### Examples
+
+- `JMP %1 end` - If the value in register 1 equals the value in register 0, jump to
+the label "end".
+
+## JMPA
+
+Always jump to an address.
+
+### Modes
+
+- Address
+
+### Examples
+
+- `JMPA bg_loop`
+
+## OR
+
+Or a value to a register.
+
+### Modes
+
+- Immediate
+- Address
+- Register
+
+### Examples
+
+- `OR %D #0x1234`
+- `OR %D 0xC000`
+- `OR %D %A`
+
+## AND
+
+And a value to a register.
+
+### Modes
+
+- Immediate
+- Address
+- Register
+
+### Examples
+
+- `AND %D #0x1234`
+- `AND %D 0xC000`
+- `AND %D %A`
+
+## XOR
+
+Exclusive or a value to a register.
+
+### Modes
+
+- Immediate
+- Address
+- Register
+
+### Examples
+
+- `XOR %D #0x1234`
+- `XOR %D 0xC000`
+- `XOR %D %A`
+
+## ROTR
+
+Rotate the value of a register right.
+
+### Modes
+
+- Immediate
+
+### Examples
+
+- `ROTR %A #4`
+- `ROTR %2 #2`
+
+## ROTL
+
+Rotate the value of a register left.
+
+### Modes
+
+- Immediate
+
+### Examples
+
+- `ROTL %A #4`
+- `ROTL %2 #2`

@@ -121,7 +121,7 @@ LOAD %1 data+1
 The special label `$` references the address of the current instruction. Offsets may be used as normal.
 
 NOTE: If a label address is loaded into a single-width register, only the lower byte of the address
-is stored. The higher byte is assumed to be 0x00.
+is stored.
 
 ## Instructions
 
@@ -145,8 +145,8 @@ The following example prints the character 'X' to the printer 3 times using a lo
     ; Print X
     STR %3 0xFF
 
-    ; Add r1 and r2 (r1 - 1), store in r1
-    ADD %1 %1 %2
+    ; Add register 2 to register 1
+    ADD %1 %2
 
     ; Check if loop counter is 0
     JMP %1 end

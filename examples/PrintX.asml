@@ -9,7 +9,7 @@ LOAD %2 #"X"
 STR %2 0xFFFF
 
 ; Add r1 and r2 (r1 - 1), store in r1
-ADDI %1 %1 0xFF
+ADD %1 #0xFF
 
 ; Check if loop counter is 0
 JMP %1 end
