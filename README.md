@@ -20,8 +20,8 @@ and machine printer to standard out. Both of these can be changed using CLI flag
 - `-out`: Path to the output file. If this is the text "stdout", output will be printed to standard output instead of a file.
 - `-state`: Print the machine state before every instruction execution. (this will be very large for 16-bit programs)
 - `-printmem`: Print the initial memory state after loading the code. Not instructions are executed.
-- `-compile`: Compile a source file and output it to a binary file. The binary still needs the runtime to
-execute. The compiled may be used in place of a source file.
+- `-compile`: Compile a source file and output it to an S-record formatted text file.
+The compiled file may be used in place of a source file.
 
 ## Architecture
 

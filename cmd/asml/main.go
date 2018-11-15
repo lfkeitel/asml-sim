@@ -10,6 +10,7 @@ import (
 	"github.com/lfkeitel/asml-sim/pkg/lexer"
 	"github.com/lfkeitel/asml-sim/pkg/linker"
 	"github.com/lfkeitel/asml-sim/pkg/parser"
+	"github.com/lfkeitel/asml-sim/pkg/srecord"
 	"github.com/lfkeitel/asml-sim/pkg/vm"
 )
 
@@ -104,12 +105,12 @@ func loadCode(infile string) []parser.CodePart {
 	p := parser.New(lex)
 	program, err := p.Parse()
 	if err != nil {
-		fmt.Printf("Parsing failed: %q\n", err)
+		fmt.Printf("Parsing failed: %v\n", err)
 		return nil
 	}
 
 	if err := linker.Link(program); err != nil {
-		fmt.Printf("Linking failed: %q\n", err)
+		fmt.Printf("Linking failed: %v\n", err)
 		return nil
 	}
 
@@ -146,20 +147,46 @@ Go version:   %s
 `, version, buildTime, builder, goversion)
 }
 
-func writeCompiledCode(code []uint8) {
-	var out io.WriteCloser
+func writeCompiledCode(code []parser.CodePart) {
+	var out io.Writer
 	if outfile == "stdout" {
 		out = os.Stdout
 	} else {
-		var err error
-		out, err = os.OpenFile(outfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		file, err := os.OpenFile(outfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+		defer file.Close()
+		out = file
 	}
 
-	out.Write(lexer.ASMLHeader)
-	out.Write(code)
-	out.Close()
+	records := srecord.New()
+	records.AddHeader(string(lexer.ASMLHeader))
+
+	lineCnt := 0
+
+	for _, part := range code {
+		totalLen := len(part.Bytes)
+		pc := part.StartPC
+		i := 0
+
+		for totalLen > 252 {
+			records.AddRecord16(srecord.SrecData16, pc, part.Bytes[i:i+252])
+			pc += 252
+			i += 252
+			totalLen -= 252
+			lineCnt++
+		}
+
+		records.AddRecord16(srecord.SrecData16, pc, part.Bytes[i:])
+		lineCnt++
+	}
+
+	if lineCnt < 0xFFFF {
+		records.AddRecord16(srecord.SrecCount16, uint16(lineCnt), nil)
+	}
+	records.AddRecord16(srecord.SrecStart16, 0, nil)
+
+	out.Write([]byte(records.String()))
 }
