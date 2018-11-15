@@ -90,7 +90,7 @@ func (p *Parser) parseAddress(pcoffset uint16) (uint16, bool) {
 		}
 
 		if label == "$" {
-			val = p.p.pc + offset
+			val = p.p.pc() + offset
 		} else {
 			p.p.addLink(pcoffset, label, int16(offset))
 		}

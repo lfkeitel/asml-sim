@@ -20,9 +20,8 @@ func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l: l,
 		p: &Program{
-			Code:    make([]uint8, 0, 100),
-			Labels:  make(LabelMap),
-			LinkMap: make(LabelLinkMap),
+			Parts:  []CodePart{newCodePart(0)},
+			Labels: make(LabelMap),
 		},
 	}
 	p.readToken()
@@ -93,6 +92,8 @@ func (p *Parser) Parse() (*Program, error) {
 
 		case token.RMB:
 			p.insRmb()
+		case token.ORG:
+			p.insOrg()
 
 		default:
 			p.err = fmt.Errorf("line %d, col %d Unknown token %v", p.ct.Line, p.ct.Column, p.ct.Type.String())
@@ -101,6 +102,11 @@ func (p *Parser) Parse() (*Program, error) {
 		p.readToken()
 	}
 
+	if p.err != nil {
+		return p.p, p.err
+	}
+
+	p.err = p.p.validate()
 	return p.p, p.err
 }
 
@@ -138,8 +144,7 @@ func (p *Parser) makeLabel() {
 func (p *Parser) rawData() {
 	switch p.ct.Type {
 	case token.STRING:
-		p.p.Code = append(p.p.Code, p.ct.Literal...)
-		p.p.pc += uint16(len(p.ct.Literal))
+		p.p.appendCode([]byte(p.ct.Literal)...)
 	case token.NUMBER:
 		var (
 			raw uint64
@@ -157,7 +162,6 @@ func (p *Parser) rawData() {
 			os.Exit(1)
 		}
 
-		p.p.Code = append(p.p.Code, uint8(raw))
-		p.p.incPC()
+		p.p.appendCode(uint8(raw))
 	}
 }

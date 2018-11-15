@@ -7,16 +7,18 @@ import (
 )
 
 func Link(program *parser.Program) error {
-	for loc, label := range program.LinkMap {
-		memloc, exists := program.Labels[label.Label]
-		if !exists {
-			return fmt.Errorf("label %s not defined", label.Label)
+	for _, part := range program.Parts {
+		for loc, label := range part.LinkMap {
+			memloc, exists := program.Labels[label.Label]
+			if !exists {
+				return fmt.Errorf("label %s not defined", label.Label)
+			}
+
+			newloc := memloc + uint16(label.Offset)
+
+			part.Bytes[loc] = uint8(newloc >> 8)
+			part.Bytes[loc+1] = uint8(newloc)
 		}
-
-		newloc := memloc + uint16(label.Offset)
-
-		program.Code[loc] = uint8(newloc >> 8)
-		program.Code[loc+1] = uint8(newloc)
 	}
 
 	return nil

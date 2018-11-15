@@ -51,6 +51,22 @@ func (p *Parser) insRmb() {
 	p.p.appendCode(bytes...)
 }
 
+func (p *Parser) insOrg() {
+	p.readToken()
+	if !p.curTokenIs(token.NUMBER) {
+		p.parseErr("ORG can only take a number argument")
+		return
+	}
+
+	val, err := parseUint16(p.ct.Literal)
+	if err != nil {
+		p.parseErr("invalid number literal")
+		return
+	}
+
+	p.p.addCodePart(val)
+}
+
 // Common argument parsers
 
 func (p *Parser) parseNoArgs(c byte) {

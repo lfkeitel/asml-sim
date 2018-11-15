@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/lfkeitel/asml-sim/pkg/opcodes"
+	"github.com/lfkeitel/asml-sim/pkg/parser"
 )
 
 const (
@@ -29,16 +30,16 @@ type VM struct {
 	printState bool
 }
 
-func New(code []uint8, printState bool) *VM {
-	if len(code) < 2 {
+func New(code []parser.CodePart, printState bool) *VM {
+	if len(code) == 0 {
 		fmt.Println("No code given")
 		os.Exit(1)
 	}
 
-	if len(code) > numOfMemoryCells-1 { // Reserve printer cell
-		fmt.Println("Program too big")
-		os.Exit(1)
-	}
+	// if len(code) > numOfMemoryCells-1 { // Reserve printer cell
+	// 	fmt.Println("Program too big")
+	// 	os.Exit(1)
+	// }
 
 	newvm := &VM{
 		registers:  make([]uint8, numOfRegisters),
@@ -47,8 +48,12 @@ func New(code []uint8, printState bool) *VM {
 		printState: printState,
 	}
 
-	for i, c := range code {
-		newvm.memory[i] = c
+	for _, c := range code {
+		pc := c.StartPC
+
+		for i, b := range c.Bytes {
+			newvm.memory[uint16(i)+pc] = b
+		}
 	}
 
 	return newvm

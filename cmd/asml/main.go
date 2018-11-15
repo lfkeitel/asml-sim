@@ -87,7 +87,7 @@ func main() {
 	}
 }
 
-func loadCode(infile string) []uint8 {
+func loadCode(infile string) []parser.CodePart {
 	file, err := os.Open(infile)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -113,12 +113,12 @@ func loadCode(infile string) []uint8 {
 		return nil
 	}
 
-	return program.Code
+	return program.Parts
 }
 
-func checkBinaryFile(file *os.File) []uint8 {
+func checkBinaryFile(file *os.File) []parser.CodePart {
 	// Read in a compiled ASML file
-	header := make([]byte, 4)
+	header := make([]byte, 18)
 	n, err := file.Read(header)
 	if err != nil {
 		fmt.Printf("Error reading file header: %s\n", err)
@@ -129,10 +129,9 @@ func checkBinaryFile(file *os.File) []uint8 {
 		os.Exit(1)
 	}
 
-	if bytes.Equal(header, lexer.ASMLHeader) {
-		var buf bytes.Buffer
-		io.Copy(&buf, file)
-		return buf.Bytes()
+	if bytes.Equal(header, []byte("S007000041534D4CCB")) {
+		fmt.Println("SRECORDS cannot be read yet")
+		os.Exit(1)
 	}
 	return nil
 }

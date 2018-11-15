@@ -45,6 +45,14 @@ in memory.
 
 - `RMB 10` - Reserve 10 bytes of memory.
 
+## ORG
+
+ORG is not a real instruction. It sets the origin address of the following code.
+
+### Examples
+
+- `ORG 0xC000` - The following code will start at address 0xC000.
+
 ## LOAD
 
 Load a value into a register.
