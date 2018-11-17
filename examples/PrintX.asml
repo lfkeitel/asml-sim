@@ -6,7 +6,7 @@ LOAD %2 #"X"
 
 :print_x
 ; Print X
-STR %2 0xFFFF
+STR %2 0xFFFD
 
 ; Add r1 and r2 (r1 - 1), store in r1
 ADD %1 #0xFF

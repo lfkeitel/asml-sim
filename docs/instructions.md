@@ -53,6 +53,62 @@ ORG is not a real instruction. It sets the origin address of the following code.
 
 - `ORG 0xC000` - The following code will start at address 0xC000.
 
+## FCB
+
+FCB is not a real instruction. Its stores literal data into memory. Each piece
+of data must be a single byte or a string. A string will be written to memory
+as individual bytes.
+
+### Examples
+
+- `FCB 0xCC` - Write the value `0xCC` as starting data to memory.
+
+The following example stores the data starting at location 0x1000 (0x1000-0x1002)
+and gives it the label data:
+
+```
+    ORG 0x1000
+:data
+    FCB 0x01, 0x25, 0x42
+```
+
+It can also be a string:
+
+```
+    ORG 0x1000
+:errmsg
+    FCB "An error as occured"
+```
+
+## FDB
+
+FDB is not a real instruction. Its stores literal data into memory. Each piece
+of data is written as a 16 bit number.
+
+### Examples
+
+- `FDB 0x1234` - Write the value `0x1234` as starting data to memory.
+
+The following example stores the data starting at location 0x1000 (0x1000-0x1001)
+and gives it the label data:
+
+```
+    ORG 0x1000
+:data
+    FDB 0x1234
+```
+
+It's very useful for storing addresses to subroutines:
+
+```
+    ORG 0x2000
+:main
+    ; Do work
+
+    ORG 0xFFFE  ; Reset address
+    FDB main    ; Start execution at the address labeled main
+```
+
 ## LOAD
 
 Load a value into a register.

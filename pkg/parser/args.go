@@ -13,7 +13,17 @@ func parseRegisterLiteral(s string) (uint8, error) {
 }
 
 func parseUint16(s string) (uint16, error) {
-	val, err := strconv.ParseUint(s, 0, 16)
+	var (
+		val uint64
+		err error
+	)
+
+	if s[0] == '!' {
+		val, err = strconv.ParseUint(s[1:], 2, 16)
+	} else {
+		val, err = strconv.ParseUint(s, 0, 16)
+	}
+
 	return uint16(val), err
 }
 

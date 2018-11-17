@@ -1,16 +1,16 @@
 LOAD %1 #"H"
-STR %1 0xFFFF
+STR %1 0xFFFD
 
 LOAD %1 #"e"
-STR %1 0xFFFF
+STR %1 0xFFFD
 
 LOAD %1 #"l"
-STR %1 0xFFFF
+STR %1 0xFFFD
 
 LOAD %1 #"l"
-STR %1 0xFFFF
+STR %1 0xFFFD
 
 LOAD %1 #"o"
-STR %1 0xFFFF
+STR %1 0xFFFD
 
 HALT

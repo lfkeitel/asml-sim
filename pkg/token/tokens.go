@@ -46,6 +46,8 @@ const (
 	RTN
 	RMB
 	ORG
+	FCB
+	FDB
 	keyword_end
 )
 
@@ -85,6 +87,8 @@ var tokens = [...]string{
 	RTN:  "RTN",
 	RMB:  "RMB",
 	ORG:  "ORG",
+	FCB:  "FCB",
+	FDB:  "FDB",
 }
 
 // Opcodes maps strings to an opcode byte value

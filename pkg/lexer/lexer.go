@@ -70,6 +70,8 @@ func (l *Lexer) NextToken() token.Token {
 		tok = token.NewToken(token.LABEL, l.readIdentifier(), l.line, l.column)
 	case '#':
 		tok = token.NewSimpleToken(token.IMMEDIATE, l.line, l.column)
+	case ',':
+		tok = token.NewSimpleToken(token.COMMA, l.line, l.column)
 	case '"':
 		tok = token.NewToken(token.STRING, l.readString(), l.line, l.column)
 	case ';':

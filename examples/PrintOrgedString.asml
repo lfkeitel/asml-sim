@@ -1,14 +1,16 @@
-JMPA 0x0030
+    ORG 0xFFFE
+    FDB main
 
     ORG 0x0040
-LOAD %1 #5
-LOAD %D #hello
+:main
+    LOAD %1 #5
+    LOAD %D #hello
 
 :print_x
     LOAD %2 %D
 
     ; Print X
-    STR %2 0xFFFF
+    STR %2 0xFFFD
 
     ; Add r1 and r2 (r1 - 1), store in r1
     ADD %1 #0xFF
@@ -27,6 +29,5 @@ LOAD %D #hello
 
 
     ORG 0x00E0
-
 :hello
-    "Hello"
+    FCB "Hello"

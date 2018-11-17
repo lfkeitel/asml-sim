@@ -40,12 +40,17 @@ Register Layout:
 |---------------------------------------|
 ```
 
-A value in memory address 0xFFFF will result in the value's ASCII representation being printed to the machine printer.
+A value in memory address 0xFFFD will result in the value's ASCII representation being printed to the machine printer.
 The cell's value will then be reset to 0. Because of this, the memory location can't actually hold a value
 between instruction loads.
 
 The number of bytes written to memory depends on the length of the source register. Single and double width
 registers will write 1 or 2 bytes respectively starting at the address in the instruction.
+
+## Reset Address
+
+The address stored in location 0xFFFE-0xFFFF is read at startup/reset as the starting
+program counter. Use an `ORG 0xFFFE` with FDB to store the location of the main routine.
 
 ## Language
 

@@ -29,6 +29,6 @@
 ; Print the argument in R1
 :print
     ; Print arg 1
-    STR %1 0xFFFF
+    STR %1 0xFFFD
     ; Return
     RTN

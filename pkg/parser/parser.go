@@ -2,8 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"os"
-	"strconv"
 
 	"github.com/lfkeitel/asml-sim/pkg/lexer"
 	"github.com/lfkeitel/asml-sim/pkg/token"
@@ -40,8 +38,6 @@ func (p *Parser) Parse() (*Program, error) {
 			break
 		case token.LABEL:
 			p.makeLabel()
-		case token.NUMBER, token.STRING:
-			p.rawData()
 
 		case token.LOAD:
 			p.insLoad()
@@ -94,6 +90,10 @@ func (p *Parser) Parse() (*Program, error) {
 			p.insRmb()
 		case token.ORG:
 			p.insOrg()
+		case token.FCB:
+			p.rawDataFCB()
+		case token.FDB:
+			p.rawDataFDB()
 
 		default:
 			p.err = fmt.Errorf("line %d, col %d Unknown token %v", p.ct.Line, p.ct.Column, p.ct.Type.String())
@@ -141,27 +141,63 @@ func (p *Parser) makeLabel() {
 	p.p.addLabel(p.ct.Literal)
 }
 
-func (p *Parser) rawData() {
-	switch p.ct.Type {
-	case token.STRING:
-		p.p.appendCode([]byte(p.ct.Literal)...)
-	case token.NUMBER:
-		var (
-			raw uint64
-			err error
-		)
+func (p *Parser) rawDataFCB() {
+	p.readToken()
 
-		if p.ct.Literal[0] == '!' {
-			raw, err = strconv.ParseUint(string(p.ct.Literal[1:]), 2, 8)
+	for {
+		if !p.curTokenIs(token.NUMBER) && !p.curTokenIs(token.STRING) {
+			p.parseErr("Constant byte must be a number or string")
+			return
+		}
+
+		if p.curTokenIs(token.STRING) {
+			p.p.appendCode([]byte(p.ct.Literal)...)
 		} else {
-			raw, err = strconv.ParseUint(string(p.ct.Literal), 0, 8)
+			val, err := parseUint16(p.ct.Literal)
+			if err != nil || val > 255 {
+				p.parseErr("Invalid bytes")
+				return
+			}
+			p.p.appendCode(uint8(val))
 		}
 
-		if err != nil {
-			fmt.Printf("Invalid byte sequence on line %d: %v\n", p.ct.Line, err)
-			os.Exit(1)
+		p.readToken()
+		if p.curTokenIs(token.END_INST) {
+			break
 		}
 
-		p.p.appendCode(uint8(raw))
+		if !p.curTokenIs(token.COMMA) {
+			p.tokenErr(token.COMMA)
+			return
+		}
+		p.readToken()
+	}
+}
+
+func (p *Parser) rawDataFDB() {
+	p.readToken()
+
+	for {
+		if p.curTokenIs(token.STRING) {
+			panic("NO!")
+		}
+
+		val, ok := p.parseAddress(0)
+		if !ok {
+			p.parseErr("Invalid bytes")
+			return
+		}
+		p.p.appendCode(uint8(val>>8), uint8(val))
+
+		p.readToken()
+		if p.curTokenIs(token.END_INST) {
+			break
+		}
+
+		if !p.curTokenIs(token.COMMA) {
+			p.tokenErr(token.COMMA)
+			return
+		}
+		p.readToken()
 	}
 }

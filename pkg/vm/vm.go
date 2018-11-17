@@ -36,27 +36,37 @@ func New(code []parser.CodePart, printState bool) *VM {
 		os.Exit(1)
 	}
 
-	// if len(code) > numOfMemoryCells-1 { // Reserve printer cell
-	// 	fmt.Println("Program too big")
-	// 	os.Exit(1)
-	// }
-
 	newvm := &VM{
 		registers:  make([]uint8, numOfRegisters),
 		memory:     make([]uint8, numOfMemoryCells),
-		pc:         0,
 		printState: printState,
 	}
 
 	for _, c := range code {
 		pc := c.StartPC
 
+		overflow := false
 		for i, b := range c.Bytes {
-			newvm.memory[uint16(i)+pc] = b
+			if overflow {
+				fmt.Println("Code overflowed past address 0xFFFF")
+				os.Exit(1)
+			}
+
+			loc := uint16(i) + pc
+			newvm.memory[loc] = b
+			if loc == numOfMemoryCells-1 {
+				overflow = true
+			}
 		}
 	}
 
+	newvm.Reset()
+
 	return newvm
+}
+
+func (vm *VM) Reset() {
+	vm.pc = (uint16(vm.memory[0xFFFE]) << 8) | uint16(vm.memory[0xFFFF])
 }
 
 func (vm *VM) Output() []byte {
@@ -201,9 +211,9 @@ mainLoop:
 		}
 
 		// Print character in memory address FF and reset it to 0
-		if vm.memory[numOfMemoryCells-1] > 0 {
-			vm.printer.WriteByte(byte(vm.memory[numOfMemoryCells-1]))
-			vm.memory[numOfMemoryCells-1] = 0
+		if vm.memory[numOfMemoryCells-3] > 0 {
+			vm.printer.WriteByte(byte(vm.memory[numOfMemoryCells-3]))
+			vm.memory[numOfMemoryCells-3] = 0
 		}
 	}
 
