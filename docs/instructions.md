@@ -154,7 +154,7 @@ Transfer data between registers.
 ## CALL
 
 Call a subroutine by setting the program counter to an address. The current
-stack pointer will be pushed onto the stack.
+program counter will be pushed onto the stack.
 
 ### Modes
 
